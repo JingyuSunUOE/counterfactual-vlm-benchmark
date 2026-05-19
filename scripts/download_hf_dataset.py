@@ -10,11 +10,12 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_REPO_ID = "JingyuSun/counterfactual-vlm-benchmark-data"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download the benchmark data payload from a Hugging Face Dataset repo.")
-    parser.add_argument("--repo-id", default=os.environ.get("HF_DATASET_REPO_ID"))
+    parser.add_argument("--repo-id", default=os.environ.get("HF_DATASET_REPO_ID", DEFAULT_REPO_ID))
     parser.add_argument("--local-dir", type=Path, default=PROJECT_ROOT)
     parser.add_argument("--revision", default="main")
     parser.add_argument("--include", action="append", default=[], help="Optional include glob passed to hf download.")
@@ -90,13 +91,17 @@ def expected_paths() -> list[Path]:
         Path("cf_dataset"),
         Path("vision_dataset"),
         Path("medical/modality_swapping/medical_modality_questions.json"),
+        Path("eval_results/if_exist/metadata"),
+        Path("eval_results/counting/metadata"),
+        Path("eval_results/fashion_industry/metadata"),
+        Path("eval_results/medical_modality/metadata"),
     ]
 
 
 def print_metadata_note() -> None:
     print(
-        "metadata_note=This HF data package intentionally does not include eval_results metadata or reports. "
-        "Regenerate metadata with the repository scripts or obtain metadata from a separate release before full evaluation."
+        "metadata_note=This HF data package includes lightweight eval_results/*/metadata runtime artifacts, "
+        "but intentionally excludes raw runs, reports, tables, figures, and provider caches."
     )
 
 

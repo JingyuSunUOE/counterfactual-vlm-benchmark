@@ -2,7 +2,11 @@
 
 A counterfactual vision-language model benchmark for testing whether VLMs answer from visible evidence or from language and category priors, and whether agentic vision tools help reduce that bias.
 
-This repository contains evaluation code, question definitions, metadata schemas, visual-evidence tooling, and experiment plans for five benchmark domains:
+**Code:** [github.com/JingyuSunUOE/counterfactual-vlm-benchmark](https://github.com/JingyuSunUOE/counterfactual-vlm-benchmark)
+
+**Data:** [huggingface.co/datasets/JingyuSun/counterfactual-vlm-benchmark-data](https://huggingface.co/datasets/JingyuSun/counterfactual-vlm-benchmark-data)
+
+This repository contains evaluation code, question definitions, metadata schemas, visual-evidence tooling, and analysis utilities for five benchmark domains:
 
 - `if_exist`: expected object parts are removed.
 - `counting`: countable body parts are added or removed.
@@ -93,12 +97,12 @@ Main tool experiments do not use part prompts such as `wing`, `finger`, or `toe`
   vision_configs/           SAM prompt configs for evidence generation
   gen_code/                 Dataset preparation and evidence generation scripts
   eval_code/                Evaluation runners, analysis, and server wrapper
-  eval_results/             Local/generated metadata, reports, raw runs, tables, and figures
+  eval_results/             Downloaded metadata plus local/generated reports, raw runs, tables, and figures
   scripts/                  Hugging Face data upload/download helpers
   test/                     Non-live schema, CLI, and analysis tests
 ```
 
-For GitHub distribution, large image assets, visual evidence, metadata, reports, raw API runs, generated figures, and restricted medical source data are excluded from Git. Question JSON files, code, configs, tests, and documentation are tracked.
+For GitHub distribution, large image assets, visual evidence, reports, raw API runs, generated figures, and restricted medical source data are excluded from Git. The Hugging Face Dataset release provides the image payload, generated visual evidence, and lightweight `eval_results/*/metadata/` runtime artifacts needed by the evaluation scripts.
 
 ## Installation
 
@@ -120,11 +124,11 @@ Do not commit `.env` files.
 
 ## Download Data
 
-The GitHub repository does not include image data, generated visual evidence, or `eval_results/` metadata/reports. Download the data payload from the Hugging Face Dataset release into the project root:
+The GitHub repository does not include image data, generated visual evidence, or local evaluation outputs. Download the data payload from the Hugging Face Dataset release into the project root:
 
 ```bash
 python scripts/download_hf_dataset.py \
-  --repo-id YOUR_NAME/vlm-counterfactual-benchmark-data \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
   --local-dir .
 ```
 
@@ -136,9 +140,13 @@ cf_dataset/
 vision_dataset/
 medical/modality_swapping/medical_modality_questions.json
 medical/modality_swapping/standardized/      # if included in the HF release
+eval_results/if_exist/metadata/
+eval_results/counting/metadata/
+eval_results/fashion_industry/metadata/
+eval_results/medical_modality/metadata/
 ```
 
-The HF data package intentionally does not include `eval_results/*/metadata` or reports. Regenerate metadata with the repository scripts or obtain metadata through a separate release before running the full evaluation.
+The HF data package includes lightweight metadata and evidence manifests so the default evaluator paths resolve after download. It intentionally does not include raw model responses, provider caches, reports, tables, or figures.
 
 ## Publish Data to Hugging Face
 
@@ -150,12 +158,12 @@ curl -LsSf https://hf.co/cli/install.sh | bash -s
 
 ```bash
 python scripts/upload_hf_dataset.py \
-  --repo-id YOUR_NAME/vlm-counterfactual-benchmark-data \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
   --private \
   --overwrite-staging
 ```
 
-The upload script reads `HF_TOKEN` from `.env`, builds `hf_dataset_release/`, writes a dataset card and `MANIFEST.json`, then calls `hf upload-large-folder` with progress output. It excludes `.env`, `eval_results/`, raw BraTS NIfTI data, local environments, and caches. Inspect the private HF repo before making it public.
+The upload script reads `HF_TOKEN` from `.env`, builds `hf_dataset_release/`, writes a dataset card and `MANIFEST.json`, then calls `hf upload-large-folder` with progress output. It includes `eval_results/*/metadata/` but excludes `.env`, raw runs, reports, tables, figures, raw BraTS NIfTI data, local environments, and caches. Inspect the private HF repo before making it public.
 
 ## Quick Start
 
@@ -220,7 +228,7 @@ The public repository is organized around a lightweight, reproducible workflow:
 
 1. Download the image and visual-evidence payload from the Hugging Face Dataset release.
 2. Install the benchmark dependencies with `pip install -e .`.
-3. Regenerate or obtain metadata artifacts when exact evaluation splits are required.
+3. Use the downloaded metadata artifacts as the source of truth for default evaluator paths.
 4. Run closed-model or OpenAI-compatible server evaluations from `eval_code/`.
 5. Aggregate results with the benchmark-specific analysis scripts.
 
@@ -228,7 +236,7 @@ Internal planning notes, cluster job files, and machine-specific Docker configur
 
 ## Data and Metadata
 
-Metadata files are the source of truth once generated. They are not included in the GitHub repository or the default HF data package under the current release policy. Do not infer formal evaluation splits by scanning directories.
+Metadata files are the source of truth for benchmark records and evidence manifests. They are not committed to GitHub, but they are included in the Hugging Face Dataset payload so downloaded data can be used directly by the evaluation scripts. Do not infer formal evaluation splits by scanning directories.
 
 | Benchmark | Main metadata |
 | --- | --- |
@@ -238,7 +246,7 @@ Metadata files are the source of truth once generated. They are not included in 
 | `industry` | `eval_results/fashion_industry/metadata/industry_cf_metadata.json` |
 | `medical_modality` | `eval_results/medical_modality/metadata/medical_modality_metadata.json` |
 
-See `dataset/README.md` for original-image data and `cf_dataset/README.md` for counterfactual-image data. If the metadata paths above are missing after a fresh clone, regenerate them with the scripts under `gen_code/` and `eval_code/`, or obtain them from a separate metadata release.
+See `dataset/README.md` for original-image data and `cf_dataset/README.md` for counterfactual-image data. If the metadata paths above are missing after a fresh clone, run `python scripts/download_hf_dataset.py --repo-id JingyuSun/counterfactual-vlm-benchmark-data --local-dir .`.
 
 ## Evaluation Metrics
 

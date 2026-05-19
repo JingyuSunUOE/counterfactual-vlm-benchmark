@@ -19,11 +19,13 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STAGING_DIR = PROJECT_ROOT / "hf_dataset_release"
 DEFAULT_LOG_DIR = PROJECT_ROOT / "release_logs"
+CODE_REPO_URL = "https://github.com/JingyuSunUOE/counterfactual-vlm-benchmark"
+DATASET_REPO_URL_PREFIX = "https://huggingface.co/datasets/"
 
 EXCLUDED_DESCRIPTIONS = [
     ".env and other local secret files",
     ".venv/, .idea/, caches, __pycache__, and .DS_Store",
-    "eval_results/ metadata, reports, tables, figures, and raw API runs",
+    "eval_results/ raw API runs, reports, tables, figures, and provider caches",
     "medical/BraTS2023_GLI/ and all BraTS source NIfTI volumes",
     "medical/modality_swapping/samples/",
 ]
@@ -108,7 +110,8 @@ def run(*, args: argparse.Namespace, staging_dir: Path, timestamp: str, logger: 
     logger.log(f"private={args.private}")
     logger.log(f"staging_dir={staging_dir}")
     logger.log(f"include_medical_generated={args.include_medical_generated}")
-    logger.log(f"metadata_and_reports_included=false")
+    logger.log("metadata_included=true")
+    logger.log("reports_included=false")
     logger.log("excluded=" + json.dumps(EXCLUDED_DESCRIPTIONS, ensure_ascii=False))
     validate_repo_id(args.repo_id, dry_run=args.dry_run, logger=logger)
 
@@ -173,6 +176,30 @@ def build_copy_plan(*, staging_dir: Path, include_medical_generated: bool) -> li
         CopyPlanItem(PROJECT_ROOT / "dataset", staging_dir / "dataset", True, "original images"),
         CopyPlanItem(PROJECT_ROOT / "cf_dataset", staging_dir / "cf_dataset", True, "counterfactual images and question JSON"),
         CopyPlanItem(PROJECT_ROOT / "vision_dataset", staging_dir / "vision_dataset", True, "generated visual evidence"),
+        CopyPlanItem(
+            PROJECT_ROOT / "eval_results" / "if_exist" / "metadata",
+            staging_dir / "eval_results" / "if_exist" / "metadata",
+            True,
+            "if_exist runtime metadata and evidence manifests",
+        ),
+        CopyPlanItem(
+            PROJECT_ROOT / "eval_results" / "counting" / "metadata",
+            staging_dir / "eval_results" / "counting" / "metadata",
+            True,
+            "counting runtime metadata and evidence manifests",
+        ),
+        CopyPlanItem(
+            PROJECT_ROOT / "eval_results" / "fashion_industry" / "metadata",
+            staging_dir / "eval_results" / "fashion_industry" / "metadata",
+            True,
+            "fashion/industry runtime metadata and evidence manifests",
+        ),
+        CopyPlanItem(
+            PROJECT_ROOT / "eval_results" / "medical_modality" / "metadata",
+            staging_dir / "eval_results" / "medical_modality" / "metadata",
+            True,
+            "medical modality runtime metadata and evidence manifests",
+        ),
         CopyPlanItem(
             PROJECT_ROOT / "medical" / "modality_swapping" / "medical_modality_questions.json",
             staging_dir / "medical" / "modality_swapping" / "medical_modality_questions.json",
@@ -268,6 +295,10 @@ def validate_existing_staging(staging_dir: Path) -> None:
         staging_dir / "dataset",
         staging_dir / "cf_dataset",
         staging_dir / "vision_dataset",
+        staging_dir / "eval_results" / "if_exist" / "metadata",
+        staging_dir / "eval_results" / "counting" / "metadata",
+        staging_dir / "eval_results" / "fashion_industry" / "metadata",
+        staging_dir / "eval_results" / "medical_modality" / "metadata",
     ]
     missing = [path for path in required if not path.exists()]
     if missing:
@@ -322,6 +353,8 @@ def should_copy_file(path: Path) -> bool:
         return False
     if "__pycache__" in parts:
         return False
+    if "archive_before_rebuild" in parts:
+        return False
     if path.suffix in {".nii"} or path.name.endswith(".nii.gz"):
         return False
     if ".env" in parts or path.name.startswith(".env"):
@@ -341,30 +374,41 @@ task_categories:
 
 # Counterfactual VLM Benchmark Data
 
-This dataset repository contains large data artifacts for the Counterfactual VLM Benchmark.
+This dataset repository contains the data payload for the Counterfactual VLM Benchmark.
 
 Uploaded at: `{timestamp}`
 
-Source repo: expected to be paired with the benchmark code repository.
+- Code repository: [{CODE_REPO_URL}]({CODE_REPO_URL})
+- Dataset repository: [{DATASET_REPO_URL_PREFIX}{repo_id}]({DATASET_REPO_URL_PREFIX}{repo_id})
+
+Use this dataset together with the GitHub repository. From the repository root, run:
+
+```bash
+python scripts/download_hf_dataset.py \\
+  --repo-id {repo_id} \\
+  --local-dir .
+```
 
 ## Contents
 
 ```text
-dataset/                  Original images for non-medical benchmarks
-cf_dataset/               Counterfactual images and question JSON files
-vision_dataset/           Generated visual evidence
-medical/modality_swapping/ Medical question JSON and generated medical visualizations, if included
+dataset/                         Original images for non-medical benchmarks
+cf_dataset/                      Counterfactual images and question JSON files
+vision_dataset/                  Generated visual evidence
+medical/modality_swapping/        Medical question JSON and generated medical visualizations, if included
+eval_results/*/metadata/          Runtime metadata and evidence manifests needed by evaluators
+MANIFEST.json                     Release manifest and payload summary
 ```
 
 ## Not Included
 
 This release intentionally does not include:
 
-- `eval_results/` metadata, reports, tables, figures, or raw API outputs
+- `eval_results/*/raw_runs`, reports, tables, figures, or raw API outputs
 - BraTS source NIfTI files under `medical/BraTS2023_GLI/`
 - API keys, provider caches, or local environment files
 
-Metadata is not included in this data package. Use the code repository to regenerate metadata or obtain metadata through a separate release if needed for exact evaluation reproduction.
+The included `eval_results/*/metadata/` directories are lightweight runtime artifacts used by the evaluation scripts. They are included so a fresh GitHub checkout plus this dataset payload has the same directory layout expected by the benchmark runners.
 
 ## Size Summary
 
@@ -390,9 +434,12 @@ def write_manifest(
     manifest = {
         "schema_version": "vlm_counterfactual_hf_release_v1",
         "repo_id": repo_id,
+        "code_repo_url": CODE_REPO_URL,
+        "dataset_repo_url": DATASET_REPO_URL_PREFIX + repo_id,
         "created_at_utc": timestamp,
         "private_requested": bool(args.private),
-        "metadata_and_reports_included": False,
+        "metadata_included": True,
+        "reports_included": False,
         "include_medical_generated": bool(args.include_medical_generated),
         "staging_dir": str(staging_dir),
         "included": stats_to_json(stats),
@@ -404,9 +451,19 @@ def write_manifest(
 def create_dataset_repo(*, repo_id: str, private: bool, token: str, logger: Logger) -> None:
     try:
         from huggingface_hub import HfApi
-        from huggingface_hub.errors import HfHubHTTPError
     except ImportError as exc:
-        raise SystemExit("huggingface_hub is not installed. Run `pip install -e .` first.") from exc
+        logger.log(f"warning=huggingface_hub import failed; falling back to hf CLI repo creation: {exc}")
+        create_dataset_repo_with_cli(repo_id=repo_id, private=private, token=token, logger=logger)
+        return
+    try:
+        from huggingface_hub.errors import HfHubHTTPError
+    except ImportError:
+        try:
+            from huggingface_hub.utils import HfHubHTTPError  # type: ignore[attr-defined]
+        except ImportError as exc:
+            logger.log(f"warning=HfHubHTTPError import failed; falling back to hf CLI repo creation: {exc}")
+            create_dataset_repo_with_cli(repo_id=repo_id, private=private, token=token, logger=logger)
+            return
     logger.log("creating_or_reusing_dataset_repo=true")
     api = HfApi(token=token)
     try:
@@ -430,6 +487,21 @@ def create_dataset_repo(*, repo_id: str, private: bool, token: str, logger: Logg
                 "3. Ensure the token has write access."
             ) from exc
         raise
+
+
+def create_dataset_repo_with_cli(*, repo_id: str, private: bool, token: str, logger: Logger) -> None:
+    if shutil.which("hf") is None:
+        raise SystemExit("hf CLI is not installed or not on PATH, and huggingface_hub API fallback is unavailable.")
+    command = ["hf", "repos", "create", repo_id, "--type", "dataset", "--exist-ok"]
+    if private:
+        command.append("--private")
+    env = os.environ.copy()
+    env["HF_TOKEN"] = token
+    logger.log("creating_or_reusing_dataset_repo_with_cli=true")
+    logger.log("repo_create_command=" + " ".join(command))
+    result = subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=False)
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
 
 
 def human_bytes(num_bytes: int) -> str:
