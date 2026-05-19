@@ -22,6 +22,11 @@ env/
 !.env.example
 .DS_Store
 
+# Internal planning and local deployment files
+EXPERIMENT_*.md
+Dockerfile
+job.yml
+
 # Local runtime, model, and provider caches
 .cache/
 models/

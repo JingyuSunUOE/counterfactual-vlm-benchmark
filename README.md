@@ -214,20 +214,17 @@ python eval_code/run_server_eval.py \
   --dry-run
 ```
 
-## Experiment Plans
+## Reproducibility Workflow
 
-The formal experiment plan is split into one validity stage and four agentic-vision stages:
+The public repository is organized around a lightweight, reproducible workflow:
 
-| Plan | Purpose |
-| --- | --- |
-| `EXPERIMENT_REDUCTION_PLAN.md` | Top-level roadmap, model selection, naming conventions, and global protocol |
-| `EXPERIMENT_STEP1_BENCHMARK_VALIDITY_PLAN.md` | Raw benchmark validity across all five domains |
-| `EXPERIMENT_STEP2_COUNTING_AGENTIC_VISION_PLAN.md` | Counting visual-evidence experiments |
-| `EXPERIMENT_STEP3_IF_EXIST_AGENTIC_VISION_PLAN.md` | If-exist visual-evidence experiments |
-| `EXPERIMENT_STEP4_FASHION_INDUSTRY_AGENTIC_VISION_PLAN.md` | Fashion and industry visual-evidence experiments |
-| `EXPERIMENT_STEP5_MEDICAL_AGENTIC_VISION_PLAN.md` | Medical label-derived visual-evidence experiments |
+1. Download the image and visual-evidence payload from the Hugging Face Dataset release.
+2. Install the benchmark dependencies with `pip install -e .`.
+3. Regenerate or obtain metadata artifacts when exact evaluation splits are required.
+4. Run closed-model or OpenAI-compatible server evaluations from `eval_code/`.
+5. Aggregate results with the benchmark-specific analysis scripts.
 
-Step 1 establishes the raw bias baseline. Steps 2-5 do not repeat `raw` or `orig_only`; they focus on whether visual evidence improves `cf_only`, with `both` treated as a lower-priority ablation.
+Internal planning notes, cluster job files, and machine-specific Docker configurations are not part of the public GitHub release. This keeps the repository focused on reusable benchmark code, question definitions, data download utilities, and documentation.
 
 ## Data and Metadata
 
