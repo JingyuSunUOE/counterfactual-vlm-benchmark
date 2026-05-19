@@ -1,0 +1,765 @@
+{
+  "benchmark_name": "if_exist_counterfactual_vlm_benchmark_questions",
+  "version": "1.6",
+  "language": "en",
+  "input_modes": [
+    "cf_only",
+    "both",
+    "orig_only"
+  ],
+  "category_order": [
+    "if_exist"
+  ],
+  "question_type_order": [
+    "yes_no",
+    "multiple_choice",
+    "open"
+  ],
+  "source_variants": [
+    "real",
+    "ai"
+  ],
+  "categories": [
+    {
+      "category": "if_exist",
+      "subcategories": [
+        {
+          "subcategory": "camel",
+          "display_name": "camel",
+          "source_variants": [
+            "real",
+            "ai"
+          ],
+          "bias_axis": "Camels are strongly associated with having a visible hump.",
+          "edit_type": "remove_hump",
+          "target_visual_cue": "Whether a hump is visibly present on the back.",
+          "questions": [
+            {
+              "question_id": "if_exist_camel_yes_no",
+              "type": "yes_no",
+              "prompt": "Camels are widely known for their distinctive humped body shape. Based on the visible body shape, does this image show the kind of appearance normally expected for a camel? Answer only yes or no.",
+              "evaluation_target": "Visible presence or absence of a hump on the camel's back.",
+              "bias_rationale": "A model relying on prior knowledge may answer yes because camels usually have humps, even when the edited image removes it.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "both": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "orig_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "yes"
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_camel_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Camels are widely known for their distinctive humped body shape. Which option best describes whether the visible body shape matches the normal expected appearance for this subject? Answer with only the option letter.",
+              "evaluation_target": "Visible description of the camel's back contour.",
+              "bias_rationale": "The word camel can trigger a hump prior even when the edited image visibly shows a smooth back.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                {
+                  "id": "B",
+                  "text": "The visible subject area clearly deviates from the normal expected appearance for this subject."
+                },
+                {
+                  "id": "C",
+                  "text": "The visible subject area is too cropped, covered, or unclear to judge reliably."
+                },
+                {
+                  "id": "D",
+                  "text": "The visible subject area looks unusual mainly because of pose, lighting, or viewing angle."
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The visible subject area clearly deviates from the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                "both": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The visible subject area clearly deviates from the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                "orig_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "The visible subject area clearly fits the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_camel_open",
+              "type": "open",
+              "prompt": "Camels are widely known for their distinctive humped body shape. State whether the visible body shape/back supports or contradicts the expected appearance, and cite one visible cue. Answer in one short sentence.",
+              "evaluation_target": "Short explanation grounded in the camel's visible back shape.",
+              "bias_rationale": "A prior-driven model may mention a hump even when the edited image visibly lacks one.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The edited image contradicts the appearance normally expected for a camel.",
+                    "required_visual_evidence": [
+                      "The answer explicitly cites a visible body-shape or back cue showing the expected feature is absent, reduced, blended, smooth, weak, ambiguous, or not clearly present.",
+                      "The answer makes clear that this visible cue contradicts the expected appearance."
+                    ],
+                    "reject_if": [
+                      "The answer clearly states or implies a clearly raised hump above the backline.",
+                      "The answer gives no concrete visible cue from the image or says the relevant subject area is too cropped, covered, obstructed, or unclear to judge reliably."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The edited image is still judged as showing a clearly raised hump because that feature is normally expected.",
+                    "prior_basis": "Camels are strongly associated with having a visible hump.",
+                    "qualify_if": [
+                      "The answer treats the expected feature as clearly present despite visible evidence such as a smooth backline, no clearly raised hump, or only a weak or ambiguous rise.",
+                      "The answer relies on category knowledge or template completion instead of concrete visible evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a smooth backline, no clearly raised hump, or only a weak or ambiguous rise and uses that to say the feature is not clearly present.",
+                      "The answer clearly says the expected feature is missing, unclear, or reduced."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer names the object or expected feature but does not clearly say whether the visible region supports or contradicts the expected appearance.",
+                      "The answer gives no concrete visible cue, says the relevant region is occluded/cropped/unclear, or mixes present and absent claims."
+                    ]
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The second image contradicts the appearance normally expected for a camel.",
+                    "required_visual_evidence": [
+                      "The answer explicitly refers to the second image or clearly contrasts it with the first image.",
+                      "The answer explicitly cites a visible body-shape or back cue in the second image showing the expected feature is absent, reduced, blended, smooth, weak, ambiguous, or not clearly present."
+                    ],
+                    "reject_if": [
+                      "The answer only describes the first or original image.",
+                      "The answer treats the second image as if a clearly raised hump is visible above the backline."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The second or edited image is still judged as showing a clearly raised hump because that feature is normally expected.",
+                    "prior_basis": "Camels are strongly associated with having a visible hump.",
+                    "qualify_if": [
+                      "The answer ignores the visible difference between the first and second image and defaults to the expected template.",
+                      "The answer treats the second image as if a clearly raised hump is visible above the backline despite visible reduction or absence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a smooth backline, no clearly raised hump, or only a weak or ambiguous rise in the second image.",
+                      "The answer clearly says the second image lacks the expected feature."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer mixes both images without clearly resolving the second or edited image.",
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer discusses only the first image, gives no concrete visible cue from the second image, or does not clearly say whether the second image supports or contradicts the expected appearance."
+                    ]
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The image supports the appearance normally expected for a camel.",
+                    "required_visual_evidence": [
+                      "The answer explicitly mentions a clearly raised hump above the backline.",
+                      "The answer grounds the judgment in the visible shape or outline in the image."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a smooth backline, no clearly raised hump, or only a weak or ambiguous rise.",
+                      "The answer relies only on what the object normally has instead of visible evidence."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The image is judged as a typical camel back with a clearly raised hump because that is the expected template.",
+                    "prior_basis": "Camels are strongly associated with having a visible hump.",
+                    "qualify_if": [
+                      "The answer says the expected feature is present without giving a concrete visible cue.",
+                      "The answer appeals to category knowledge rather than image-grounded evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a clearly raised hump above the backline.",
+                      "The answer explicitly cites a smooth backline, no clearly raised hump, or only a weak or ambiguous rise."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer mentions visibility or occlusion issues without clearly judging whether the expected feature is present.",
+                      "The answer is too incomplete to determine whether it is image-grounded or prior-driven."
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "subcategory": "elephant_trunk",
+          "display_name": "elephant",
+          "source_variants": [
+            "real",
+            "ai"
+          ],
+          "bias_axis": "Elephants are strongly associated with having a visible trunk.",
+          "edit_type": "remove_trunk",
+          "target_visual_cue": "Whether a trunk visibly extends from the elephant's face.",
+          "questions": [
+            {
+              "question_id": "if_exist_elephant_trunk_yes_no",
+              "type": "yes_no",
+              "prompt": "Elephants are widely known for their distinctive trunk-bearing face. Based on the visible face, does this image show the kind of appearance normally expected for an elephant? Answer only yes or no.",
+              "evaluation_target": "Visible presence or absence of a trunk on the elephant's face.",
+              "bias_rationale": "A model relying on prior knowledge may answer yes because elephants normally have trunks, even when the edited image removes it.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "both": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "orig_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "yes"
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_elephant_trunk_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Elephants are widely known for their distinctive trunk-bearing face. Which description best matches the relationship between the visible face and the appearance normally expected for this subject? Answer with only the option letter.",
+              "evaluation_target": "Visible description of the elephant's facial structure.",
+              "bias_rationale": "The word elephant can bias a model toward a visible trunk even when the edited image shows a face without one.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "The expected feature is clearly present in the visible subject area"
+                },
+                {
+                  "id": "B",
+                  "text": "The expected feature is not clearly present, or appears reduced, blended, or incomplete"
+                },
+                {
+                  "id": "C",
+                  "text": "The relevant subject area is too cropped, covered, or unclear to judge reliably"
+                },
+                {
+                  "id": "D",
+                  "text": "The visible subject area is too distorted or non-diagnostic for a reliable feature judgment"
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The expected feature is not clearly present, or appears reduced, blended, or incomplete",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The expected feature is clearly present in the visible subject area"
+                },
+                "both": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The expected feature is not clearly present, or appears reduced, blended, or incomplete",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The expected feature is clearly present in the visible subject area"
+                },
+                "orig_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "The expected feature is clearly present in the visible subject area",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The expected feature is clearly present in the visible subject area"
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_elephant_trunk_open",
+              "type": "open",
+              "prompt": "Elephants are widely known for their distinctive trunk-bearing face. State whether the visible face supports or contradicts the expected appearance, and cite one visible cue. Answer in one short sentence.",
+              "evaluation_target": "Short explanation grounded in the elephant's facial cue.",
+              "bias_rationale": "A prior-driven model may mention a trunk even when the edited face visibly lacks one.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The edited image contradicts the appearance normally expected for an elephant.",
+                    "required_visual_evidence": [
+                      "The answer explicitly cites a visible face cue showing the expected feature is absent, reduced, short, stubby, blended, incomplete, or not clearly present.",
+                      "The answer makes clear that this visible cue contradicts the expected appearance."
+                    ],
+                    "reject_if": [
+                      "The answer clearly states or implies a long trunk clearly extending from the face.",
+                      "The answer gives no concrete visible cue from the image or says the relevant subject area is too cropped, covered, obstructed, or unclear to judge reliably."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The edited image is still judged as showing a clearly visible trunk because that feature is normally expected.",
+                    "prior_basis": "Elephants are strongly associated with having a visible trunk.",
+                    "qualify_if": [
+                      "The answer treats the expected feature as clearly present despite visible evidence such as no clearly extended trunk, only a very short or stubby trunk, or a trunk that is blended in and not clearly visible.",
+                      "The answer relies on category knowledge or template completion instead of concrete visible evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites no clearly extended trunk, only a very short or stubby trunk, or a trunk that is blended in and not clearly visible and uses that to say the feature is not clearly present.",
+                      "The answer clearly says the expected feature is missing, unclear, or reduced."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer names the object or expected feature but does not clearly say whether the visible region supports or contradicts the expected appearance.",
+                      "The answer gives no concrete visible cue, says the relevant region is occluded/cropped/unclear, or mixes present and absent claims."
+                    ]
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The second image contradicts the appearance normally expected for an elephant.",
+                    "required_visual_evidence": [
+                      "The answer explicitly refers to the second image or clearly contrasts it with the first image.",
+                      "The answer explicitly cites a visible face cue in the second image showing the expected feature is absent, reduced, short, stubby, blended, incomplete, or not clearly present."
+                    ],
+                    "reject_if": [
+                      "The answer only describes the first or original image.",
+                      "The answer treats the second image as if a long trunk is clearly extending from the face."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The second or edited image is still judged as showing a clearly visible trunk because that feature is normally expected.",
+                    "prior_basis": "Elephants are strongly associated with having a visible trunk.",
+                    "qualify_if": [
+                      "The answer ignores the visible difference between the first and second image and defaults to the expected template.",
+                      "The answer treats the second image as if a long trunk is clearly extending from the face despite visible reduction or absence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites no clearly extended trunk, only a very short or stubby trunk, or a trunk that is blended in and not clearly visible in the second image.",
+                      "The answer clearly says the second image lacks the expected feature."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer mixes both images without clearly resolving the second or edited image.",
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer discusses only the first image, gives no concrete visible cue from the second image, or does not clearly say whether the second image supports or contradicts the expected appearance."
+                    ]
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The image supports the appearance normally expected for an elephant.",
+                    "required_visual_evidence": [
+                      "The answer explicitly mentions a long trunk clearly extending from the face.",
+                      "The answer grounds the judgment in the visible shape or outline in the image."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites no clearly extended trunk, only a very short or stubby trunk, or a trunk that is blended in and not clearly visible.",
+                      "The answer relies only on what the object normally has instead of visible evidence."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The image is judged as a typical elephant face with a clearly visible trunk because that is the expected template.",
+                    "prior_basis": "Elephants are strongly associated with having a visible trunk.",
+                    "qualify_if": [
+                      "The answer says the expected feature is present without giving a concrete visible cue.",
+                      "The answer appeals to category knowledge rather than image-grounded evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a long trunk clearly extending from the face.",
+                      "The answer explicitly cites no clearly extended trunk, only a very short or stubby trunk, or a trunk that is blended in and not clearly visible."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer mentions visibility or occlusion issues without clearly judging whether the expected feature is present.",
+                      "The answer is too incomplete to determine whether it is image-grounded or prior-driven."
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "subcategory": "fish_fin",
+          "display_name": "fish",
+          "source_variants": [
+            "real",
+            "ai"
+          ],
+          "bias_axis": "This fish is strongly associated with having a prominent upper fin above its back.",
+          "edit_type": "remove_fin",
+          "target_visual_cue": "Whether a tall dorsal or sail-like upper fin visibly rises above the fish's back.",
+          "questions": [
+            {
+              "question_id": "if_exist_fish_fin_yes_no",
+              "type": "yes_no",
+              "prompt": "This kind of fish is widely known for a tall upper fin rising above its back. Based on the visible back silhouette, does this image show the kind of appearance normally expected for this fish? Answer only yes or no.",
+              "evaluation_target": "Visible presence or absence of a tall upper fin above the fish's back.",
+              "bias_rationale": "A model relying on prior knowledge may answer yes because this fish is expected to have a prominent upper fin, even when the edited image removes it.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "both": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "orig_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "yes"
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_fish_fin_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "This kind of fish is widely known for a tall upper fin rising above its back. Which option best describes whether the visible back silhouette matches the normal expected appearance for this subject? Answer with only the option letter.",
+              "evaluation_target": "Visible description of the fish's upper back and dorsal outline.",
+              "bias_rationale": "The model may choose the expected fin-bearing answer from prior knowledge even when the edited image shows a smooth back without the tall upper fin.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                {
+                  "id": "B",
+                  "text": "The visible subject area clearly deviates from the normal expected appearance for this subject."
+                },
+                {
+                  "id": "C",
+                  "text": "The visible subject area is too cropped, covered, or unclear to judge reliably."
+                },
+                {
+                  "id": "D",
+                  "text": "The visible subject area looks unusual mainly because of pose, lighting, or viewing angle."
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The visible subject area clearly deviates from the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                "both": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The visible subject area clearly deviates from the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                "orig_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "The visible subject area clearly fits the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_fish_fin_open",
+              "type": "open",
+              "prompt": "This kind of fish is widely known for a tall upper fin rising above its back. State whether the visible back silhouette supports or contradicts the expected appearance, and cite one visible cue. Answer in one short sentence.",
+              "evaluation_target": "Short explanation grounded in the fish's dorsal outline.",
+              "bias_rationale": "A prior-driven model may still describe a tall upper fin even when the edited image visibly lacks it.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The edited image contradicts the appearance normally expected for this fish.",
+                    "required_visual_evidence": [
+                      "The answer explicitly cites a visible back-silhouette cue showing the expected feature is absent, reduced, low, smooth, blended, incomplete, or not clearly present.",
+                      "The answer makes clear that this visible cue contradicts the expected appearance."
+                    ],
+                    "reject_if": [
+                      "The answer clearly states or implies a tall dorsal or upper fin clearly rising above the back.",
+                      "The answer gives no concrete visible cue from the image or says the relevant subject area is too cropped, covered, obstructed, or unclear to judge reliably."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The edited image is still judged as showing a clearly raised upper fin because that feature is normally expected.",
+                    "prior_basis": "This fish is strongly associated with having a prominent upper fin above its back.",
+                    "qualify_if": [
+                      "The answer treats the expected feature as clearly present despite visible evidence such as a smooth backline without a clearly raised fin, or only a low ridge that does not count as a tall fin.",
+                      "The answer relies on category knowledge or template completion instead of concrete visible evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a smooth backline without a clearly raised fin, or only a low ridge that does not count as a tall fin and uses that to say the feature is not clearly present.",
+                      "The answer clearly says the expected feature is missing, unclear, or reduced."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer names the object or expected feature but does not clearly say whether the visible region supports or contradicts the expected appearance.",
+                      "The answer gives no concrete visible cue, says the relevant region is occluded/cropped/unclear, or mixes present and absent claims."
+                    ]
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The second image contradicts the appearance normally expected for this fish.",
+                    "required_visual_evidence": [
+                      "The answer explicitly refers to the second image or clearly contrasts it with the first image.",
+                      "The answer explicitly cites a visible back-silhouette cue in the second image showing the expected feature is absent, reduced, low, smooth, blended, incomplete, or not clearly present."
+                    ],
+                    "reject_if": [
+                      "The answer only describes the first or original image.",
+                      "The answer treats the second image as if a tall dorsal or upper fin is clearly rising above the back."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The second or edited image is still judged as showing a clearly raised upper fin because that feature is normally expected.",
+                    "prior_basis": "This fish is strongly associated with having a prominent upper fin above its back.",
+                    "qualify_if": [
+                      "The answer ignores the visible difference between the first and second image and defaults to the expected template.",
+                      "The answer treats the second image as if a tall dorsal or upper fin is clearly rising above the back despite visible reduction or absence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a smooth backline without a clearly raised fin, or only a low ridge that does not count as a tall fin in the second image.",
+                      "The answer clearly says the second image lacks the expected feature."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer mixes both images without clearly resolving the second or edited image.",
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer discusses only the first image, gives no concrete visible cue from the second image, or does not clearly say whether the second image supports or contradicts the expected appearance."
+                    ]
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The image supports the appearance normally expected for this fish.",
+                    "required_visual_evidence": [
+                      "The answer explicitly mentions a tall dorsal or upper fin clearly rising above the back.",
+                      "The answer grounds the judgment in the visible shape or outline in the image."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a smooth backline without a clearly raised fin, or only a low ridge that does not count as a tall fin.",
+                      "The answer relies only on what the object normally has instead of visible evidence."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The image is judged as a typical fish back with a clearly raised upper fin because that is the expected template.",
+                    "prior_basis": "This fish is strongly associated with having a prominent upper fin above its back.",
+                    "qualify_if": [
+                      "The answer says the expected feature is present without giving a concrete visible cue.",
+                      "The answer appeals to category knowledge rather than image-grounded evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites a tall dorsal or upper fin clearly rising above the back.",
+                      "The answer explicitly cites a smooth backline without a clearly raised fin, or only a low ridge that does not count as a tall fin."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer mentions visibility or occlusion issues without clearly judging whether the expected feature is present.",
+                      "The answer is too incomplete to determine whether it is image-grounded or prior-driven."
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "subcategory": "rabbit",
+          "display_name": "rabbit",
+          "source_variants": [
+            "real",
+            "ai"
+          ],
+          "bias_axis": "Rabbits are strongly associated with having visible long ears.",
+          "edit_type": "remove_ear",
+          "target_visual_cue": "Whether at least one long ear is visibly present above the rabbit's head.",
+          "questions": [
+            {
+              "question_id": "if_exist_rabbit_yes_no",
+              "type": "yes_no",
+              "prompt": "Rabbits are widely known for their long-eared head shape. Based on the visible head shape, does this image show the kind of appearance normally expected for a rabbit? Answer only yes or no.",
+              "evaluation_target": "Visible presence or absence of a long ear on the rabbit's head.",
+              "bias_rationale": "A model relying on prior knowledge may answer yes because rabbits usually have visible long ears, even when the edited image removes them.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "both": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "orig_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "yes"
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_rabbit_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Rabbits are widely known for their long-eared head shape. Which option best describes whether the visible head shape matches the normal expected appearance for this subject? Answer with only the option letter.",
+              "evaluation_target": "Visible description of ear presence above the rabbit's head.",
+              "bias_rationale": "The word rabbit can bias a model toward visible long ears even when the edited image shows none.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                {
+                  "id": "B",
+                  "text": "The visible subject area clearly deviates from the normal expected appearance for this subject."
+                },
+                {
+                  "id": "C",
+                  "text": "The visible subject area is too cropped, covered, or unclear to judge reliably."
+                },
+                {
+                  "id": "D",
+                  "text": "The visible subject area looks unusual mainly because of pose, lighting, or viewing angle."
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The visible subject area clearly deviates from the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                "both": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "The visible subject area clearly deviates from the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                },
+                "orig_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "The visible subject area clearly fits the normal expected appearance for this subject.",
+                  "biased_option_id": "A",
+                  "biased_option_text": "The visible subject area clearly fits the normal expected appearance for this subject."
+                }
+              }
+            },
+            {
+              "question_id": "if_exist_rabbit_open",
+              "type": "open",
+              "prompt": "Rabbits are widely known for their long-eared head shape. State whether the visible head shape supports or contradicts the expected appearance, and cite one visible cue. Answer in one short sentence.",
+              "evaluation_target": "Short explanation grounded in the rabbit's visible head shape.",
+              "bias_rationale": "A prior-driven model may still mention long ears even when the edited image visibly lacks them.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The edited image contradicts the appearance normally expected for a rabbit.",
+                    "required_visual_evidence": [
+                      "The answer explicitly cites a visible head-shape cue showing the expected feature is absent, reduced, short, folded, hidden, blended, incomplete, or not clearly present.",
+                      "The answer makes clear that this visible cue contradicts the expected appearance."
+                    ],
+                    "reject_if": [
+                      "The answer clearly states or implies at least one long ear clearly extending above the head.",
+                      "The answer gives no concrete visible cue from the image or says the relevant subject area is too cropped, covered, obstructed, or unclear to judge reliably."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The edited image is still judged as showing a clearly visible long ear because that feature is normally expected.",
+                    "prior_basis": "Rabbits are strongly associated with having visible long ears.",
+                    "qualify_if": [
+                      "The answer treats the expected feature as clearly present despite visible evidence such as no clearly visible long ear, or only a short, folded, or partly hidden ear shape.",
+                      "The answer relies on category knowledge or template completion instead of concrete visible evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites no clearly visible long ear, or only a short, folded, or partly hidden ear shape and uses that to say the feature is not clearly present.",
+                      "The answer clearly says the expected feature is missing, unclear, or reduced."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer names the object or expected feature but does not clearly say whether the visible region supports or contradicts the expected appearance.",
+                      "The answer gives no concrete visible cue, says the relevant region is occluded/cropped/unclear, or mixes present and absent claims."
+                    ]
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The second image contradicts the appearance normally expected for a rabbit.",
+                    "required_visual_evidence": [
+                      "The answer explicitly refers to the second image or clearly contrasts it with the first image.",
+                      "The answer explicitly cites a visible head-shape cue in the second image showing the expected feature is absent, reduced, short, folded, hidden, blended, incomplete, or not clearly present."
+                    ],
+                    "reject_if": [
+                      "The answer only describes the first or original image.",
+                      "The answer treats the second image as if at least one long ear is clearly extending above the head."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The second or edited image is still judged as showing a clearly visible long ear because that feature is normally expected.",
+                    "prior_basis": "Rabbits are strongly associated with having visible long ears.",
+                    "qualify_if": [
+                      "The answer ignores the visible difference between the first and second image and defaults to the expected template.",
+                      "The answer treats the second image as if at least one long ear is clearly extending above the head despite visible reduction or absence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites no clearly visible long ear, or only a short, folded, or partly hidden ear shape in the second image.",
+                      "The answer clearly says the second image lacks the expected feature."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer mixes both images without clearly resolving the second or edited image.",
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer discusses only the first image, gives no concrete visible cue from the second image, or does not clearly say whether the second image supports or contradicts the expected appearance."
+                    ]
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The image supports the appearance normally expected for a rabbit.",
+                    "required_visual_evidence": [
+                      "The answer explicitly mentions at least one long ear clearly extending above the head.",
+                      "The answer grounds the judgment in the visible shape or outline in the image."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites no clearly visible long ear, or only a short, folded, or partly hidden ear shape.",
+                      "The answer relies only on what the object normally has instead of visible evidence."
+                    ]
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The image is judged as a typical rabbit head with a clearly visible long ear because that is the expected template.",
+                    "prior_basis": "Rabbits are strongly associated with having visible long ears.",
+                    "qualify_if": [
+                      "The answer says the expected feature is present without giving a concrete visible cue.",
+                      "The answer appeals to category knowledge rather than image-grounded evidence."
+                    ],
+                    "reject_if": [
+                      "The answer explicitly cites at least one long ear clearly extending above the head.",
+                      "The answer explicitly cites no clearly visible long ear, or only a short, folded, or partly hidden ear shape."
+                    ]
+                  },
+                  "other_rubric": {
+                    "label_when": [
+                      "The answer is vague, hedged, contradictory, or unsupported.",
+                      "The answer mentions visibility or occlusion issues without clearly judging whether the expected feature is present.",
+                      "The answer is too incomplete to determine whether it is image-grounded or prior-driven."
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

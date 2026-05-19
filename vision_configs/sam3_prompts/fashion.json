@@ -1,0 +1,81 @@
+{
+  "schema_version": "sam3_prompt_config_v1",
+  "benchmark": "fashion",
+  "categories": {
+        "ralph_lauren": {
+            "object_prompt": "Ralph Lauren logo",
+            "fallback_object_prompts": [
+                "polo logo",
+                "stitched logo",
+                "fashion logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "burberry": {
+            "object_prompt": "Burberry logo",
+            "fallback_object_prompts": [
+                "equestrian logo",
+                "fashion logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "loewe": {
+            "object_prompt": "Loewe logo",
+            "fallback_object_prompts": [
+                "fashion logo",
+                "monogram logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "chanel": {
+            "object_prompt": "Chanel logo",
+            "fallback_object_prompts": [
+                "fashion logo",
+                "monogram logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "lv": {
+            "object_prompt": "Louis Vuitton logo",
+            "fallback_object_prompts": [
+                "LV logo",
+                "monogram logo",
+                "fashion logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "gucci_gg": {
+            "object_prompt": "Gucci logo",
+            "fallback_object_prompts": [
+                "GG logo",
+                "monogram logo",
+                "fashion logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "ysl": {
+            "object_prompt": "YSL logo",
+            "fallback_object_prompts": [
+                "monogram logo",
+                "fashion logo",
+                "brand mark",
+                "emblem"
+            ]
+        },
+        "celine": {
+            "object_prompt": "Celine logo",
+            "fallback_object_prompts": [
+                "fashion logo",
+                "monogram logo",
+                "brand mark",
+                "emblem"
+            ]
+        }
+  }
+}

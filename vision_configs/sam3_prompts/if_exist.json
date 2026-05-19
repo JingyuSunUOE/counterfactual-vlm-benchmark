@@ -1,0 +1,18 @@
+{
+  "schema_version": "sam3_prompt_config_v1",
+  "benchmark": "if_exist",
+  "categories": {
+    "camel": {
+      "object_prompt": "camel"
+    },
+    "elephant_trunk": {
+      "object_prompt": "elephant"
+    },
+    "fish_fin": {
+      "object_prompt": "fish"
+    },
+    "rabbit": {
+      "object_prompt": "rabbit"
+    }
+  }
+}

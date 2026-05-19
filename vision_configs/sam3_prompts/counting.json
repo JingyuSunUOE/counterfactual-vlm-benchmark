@@ -1,0 +1,153 @@
+{
+  "schema_version": "sam3_prompt_config_v1",
+  "benchmark": "counting",
+  "categories": {
+    "accipitriformes": {
+      "object_prompt": "bird of prey"
+    },
+    "anseriformes": {
+      "object_prompt": "waterfowl bird"
+    },
+    "columbiformes": {
+      "object_prompt": "pigeon or dove bird"
+    },
+    "galliformes": {
+      "object_prompt": "game bird"
+    },
+    "passeriformes": {
+      "object_prompt": "small perching bird"
+    },
+    "pelecaniformes": {
+      "object_prompt": "large water bird",
+      "fallback_object_prompts": [
+        "bird"
+      ]
+    },
+    "piciformes": {
+      "object_prompt": "woodpecker bird",
+      "fallback_object_prompts": [
+        "bird"
+      ]
+    },
+    "psittaciformes": {
+      "object_prompt": "parrot bird"
+    },
+    "sphenisciformes": {
+      "object_prompt": "penguin"
+    },
+    "strigiformes": {
+      "object_prompt": "owl"
+    },
+    "blattodea": {
+      "object_prompt": "cockroach insect"
+    },
+    "coleoptera": {
+      "object_prompt": "beetle insect"
+    },
+    "diptera": {
+      "object_prompt": "fly or mosquito insect"
+    },
+    "hemiptera": {
+      "object_prompt": "true bug insect"
+    },
+    "lepidoptera": {
+      "object_prompt": "butterfly or moth"
+    },
+    "odonata": {
+      "object_prompt": "dragonfly or damselfly"
+    },
+    "orthoptera": {
+      "object_prompt": "grasshopper or cricket insect",
+      "fallback_object_prompts": [
+        "insect"
+      ]
+    },
+    "human_hand": {
+      "object_prompt": "human hand"
+    },
+    "human_hand_ai": {
+      "object_prompt": "human hand"
+    },
+    "chimpanzee_hand": {
+      "object_prompt": "chimpanzee hand",
+      "fallback_object_prompts": [
+        "primate hand",
+        "hand"
+      ]
+    },
+    "chimpanzee_hand_ai": {
+      "object_prompt": "chimpanzee hand",
+      "fallback_object_prompts": [
+        "primate hand",
+        "hand"
+      ]
+    },
+    "panda_paw": {
+      "object_prompt": "panda paw",
+      "fallback_object_prompts": [
+        "bear paw",
+        "panda foot",
+        "bear foot",
+        "paw close-up",
+        "animal paw"
+      ]
+    },
+    "panda_paw_ai": {
+      "object_prompt": "panda paw",
+      "fallback_object_prompts": [
+        "bear paw",
+        "panda foot",
+        "bear foot",
+        "paw close-up",
+        "animal paw"
+      ]
+    },
+    "chicken_feet": {
+      "object_prompt": "chicken feet",
+      "fallback_object_prompts": [
+        "chicken foot",
+        "poultry foot",
+        "bird foot",
+        "bird feet",
+        "chicken leg and foot",
+        "bird claws",
+        "chicken"
+      ]
+    },
+    "chicken_feet_ai": {
+      "object_prompt": "chicken feet",
+      "fallback_object_prompts": [
+        "chicken foot",
+        "poultry foot",
+        "bird foot",
+        "bird feet",
+        "chicken leg and foot",
+        "bird claws",
+        "chicken"
+      ]
+    },
+    "Woodpecker_feet": {
+      "object_prompt": "woodpecker feet",
+      "fallback_object_prompts": [
+        "woodpecker foot",
+        "bird foot",
+        "bird feet",
+        "woodpecker leg and foot",
+        "bird claws",
+        "talons",
+        "bird foot illustration",
+        "woodpecker bird"
+      ]
+    },
+    "Woodpecker_feet_ai": {
+      "object_prompt": "woodpecker feet",
+      "fallback_object_prompts": [
+        "woodpecker foot",
+        "bird foot",
+        "bird claws",
+        "talons",
+        "woodpecker bird"
+      ]
+    }
+  }
+}

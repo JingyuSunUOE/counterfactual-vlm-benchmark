@@ -1,0 +1,67 @@
+{
+  "schema_version": "sam3_prompt_config_v1",
+  "benchmark": "industry",
+  "categories": {
+        "basketball": {
+            "object_prompt": "basketball",
+            "fallback_object_prompts": [
+                "sports ball",
+                "ball"
+            ]
+        },
+        "football": {
+            "object_prompt": "soccer ball",
+            "fallback_object_prompts": [
+                "football ball",
+                "sports ball",
+                "ball"
+            ]
+        },
+        "pingpong_ball": {
+            "object_prompt": "ping pong ball",
+            "fallback_object_prompts": [
+                "table tennis ball",
+                "small ball",
+                "ball"
+            ]
+        },
+        "tennis_ball": {
+            "object_prompt": "tennis ball",
+            "fallback_object_prompts": [
+                "sports ball",
+                "ball"
+            ]
+        },
+        "road_sign": {
+            "object_prompt": "stop sign",
+            "fallback_object_prompts": [
+                "road sign",
+                "traffic sign",
+                "sign"
+            ]
+        },
+        "traffic_light": {
+            "object_prompt": "traffic light",
+            "fallback_object_prompts": [
+                "traffic signal",
+                "signal light"
+            ]
+        },
+        "piano_keyboard": {
+            "object_prompt": "piano keyboard",
+            "fallback_object_prompts": [
+                "musical keyboard",
+                "keyboard"
+            ]
+        },
+        "poker_cards": {
+            "object_prompt": "playing cards",
+            "fallback_object_prompts": [
+                "poker cards",
+                "deck of cards",
+                "card game",
+                "cards"
+            ]
+        }
+  }
+}

@@ -1,0 +1,537 @@
+{
+  "benchmark_name": "medical_modality",
+  "version": "1.1",
+  "language": "en",
+  "input_modes": [
+    "cf_only",
+    "both",
+    "orig_only"
+  ],
+  "category_order": [
+    "medical_modality"
+  ],
+  "question_type_order": [
+    "yes_no",
+    "multiple_choice",
+    "open"
+  ],
+  "visual_versions": [
+    "clean",
+    "overlay"
+  ],
+  "categories": [
+    {
+      "name": "medical_modality",
+      "question_groups": [
+        {
+          "question_group_id": "brats2018_t1_background_flair_tumor",
+          "dataset": "brats2018",
+          "subcategory": "brats2018_t1_background_flair_tumor",
+          "display_name": "T1 background with FLAIR tumor",
+          "background_modality": "T1",
+          "tumor_region_modality": "FLAIR",
+          "questions": [
+            {
+              "question_id": "brats2018_t1_background_flair_tumor_yes_no",
+              "type": "yes_no",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Based on the tumor-region signal, does the tumor region look more FLAIR-like than native T1-like? Answer only yes or no.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "no"
+                },
+                "both": {
+                  "correct_answer": "yes",
+                  "biased_answer": "no"
+                },
+                "orig_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "no"
+                }
+              }
+            },
+            {
+              "question_id": "brats2018_t1_background_flair_tumor_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Which MRI sequence does the visible tumor region most closely resemble? Answer with only the option letter.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "T1 or native T1"
+                },
+                {
+                  "id": "B",
+                  "text": "FLAIR or T2-FLAIR"
+                },
+                {
+                  "id": "C",
+                  "text": "T2-weighted but not clearly FLAIR"
+                },
+                {
+                  "id": "D",
+                  "text": "The tumor region is too unclear to judge reliably"
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "FLAIR or T2-FLAIR",
+                  "biased_option_id": "A",
+                  "biased_option_text": "T1 or native T1"
+                },
+                "both": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "FLAIR or T2-FLAIR",
+                  "biased_option_id": "A",
+                  "biased_option_text": "T1 or native T1"
+                },
+                "orig_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "T1 or native T1",
+                  "biased_option_id": "A",
+                  "biased_option_text": "T1 or native T1"
+                }
+              }
+            },
+            {
+              "question_id": "brats2018_t1_background_flair_tumor_open",
+              "type": "open",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. State whether the tumor-region contrast supports or conflicts with the surrounding MRI sequence, and cite one visible signal cue. Answer in one short sentence.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding T1 sequence and is more consistent with FLAIR.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding T1 background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding T1 sequence or identifies the tumor as T1-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T1-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding T1 sequence and is more consistent with FLAIR.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding T1 background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the second image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding T1 sequence or identifies the tumor as T1-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T1-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast supports or is consistent with the surrounding T1 sequence.",
+                    "required_visual_evidence": "Visible evidence should mention no clear local signal discontinuity between the tumor region and surrounding MRI sequence, or a tumor-region cue consistent with the same sequence.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer gives only generic MRI sequence knowledge without citing visible contrast evidence.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T1-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "question_group_id": "brats2018_flair_background_t1_tumor",
+          "dataset": "brats2018",
+          "subcategory": "brats2018_flair_background_t1_tumor",
+          "display_name": "FLAIR background with T1 tumor",
+          "background_modality": "FLAIR",
+          "tumor_region_modality": "T1",
+          "questions": [
+            {
+              "question_id": "brats2018_flair_background_t1_tumor_yes_no",
+              "type": "yes_no",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Based on the tumor-region signal, does the tumor region look more FLAIR-like than native T1-like? Answer only yes or no.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "both": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "orig_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "yes"
+                }
+              }
+            },
+            {
+              "question_id": "brats2018_flair_background_t1_tumor_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Which MRI sequence does the visible tumor region most closely resemble? Answer with only the option letter.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "T1 or native T1"
+                },
+                {
+                  "id": "B",
+                  "text": "FLAIR or T2-FLAIR"
+                },
+                {
+                  "id": "C",
+                  "text": "T2-weighted but not clearly FLAIR"
+                },
+                {
+                  "id": "D",
+                  "text": "The tumor region is too unclear to judge reliably"
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "T1 or native T1",
+                  "biased_option_id": "B",
+                  "biased_option_text": "FLAIR or T2-FLAIR"
+                },
+                "both": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "T1 or native T1",
+                  "biased_option_id": "B",
+                  "biased_option_text": "FLAIR or T2-FLAIR"
+                },
+                "orig_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "FLAIR or T2-FLAIR",
+                  "biased_option_id": "B",
+                  "biased_option_text": "FLAIR or T2-FLAIR"
+                }
+              }
+            },
+            {
+              "question_id": "brats2018_flair_background_t1_tumor_open",
+              "type": "open",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. State whether the tumor-region contrast supports or conflicts with the surrounding MRI sequence, and cite one visible signal cue. Answer in one short sentence.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding FLAIR sequence and is more consistent with T1.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding FLAIR background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding FLAIR sequence or identifies the tumor as FLAIR-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears FLAIR-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding FLAIR sequence and is more consistent with T1.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding FLAIR background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the second image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding FLAIR sequence or identifies the tumor as FLAIR-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears FLAIR-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast supports or is consistent with the surrounding FLAIR sequence.",
+                    "required_visual_evidence": "Visible evidence should mention no clear local signal discontinuity between the tumor region and surrounding MRI sequence, or a tumor-region cue consistent with the same sequence.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer gives only generic MRI sequence knowledge without citing visible contrast evidence.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears FLAIR-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "question_group_id": "brats2023_t1n_background_t2f_tumor",
+          "dataset": "brats2023",
+          "subcategory": "brats2023_t1n_background_t2f_tumor",
+          "display_name": "T1N background with T2F tumor",
+          "background_modality": "T1N",
+          "tumor_region_modality": "T2F",
+          "questions": [
+            {
+              "question_id": "brats2023_t1n_background_t2f_tumor_yes_no",
+              "type": "yes_no",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Based on the tumor-region signal, does the tumor region look more FLAIR-like than native T1-like? Answer only yes or no.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "no"
+                },
+                "both": {
+                  "correct_answer": "yes",
+                  "biased_answer": "no"
+                },
+                "orig_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "no"
+                }
+              }
+            },
+            {
+              "question_id": "brats2023_t1n_background_t2f_tumor_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Which MRI sequence does the visible tumor region most closely resemble? Answer with only the option letter.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "T1 or native T1"
+                },
+                {
+                  "id": "B",
+                  "text": "FLAIR or T2-FLAIR"
+                },
+                {
+                  "id": "C",
+                  "text": "T2-weighted but not clearly FLAIR"
+                },
+                {
+                  "id": "D",
+                  "text": "The tumor region is too unclear to judge reliably"
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "FLAIR or T2-FLAIR",
+                  "biased_option_id": "A",
+                  "biased_option_text": "T1 or native T1"
+                },
+                "both": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "FLAIR or T2-FLAIR",
+                  "biased_option_id": "A",
+                  "biased_option_text": "T1 or native T1"
+                },
+                "orig_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "T1 or native T1",
+                  "biased_option_id": "A",
+                  "biased_option_text": "T1 or native T1"
+                }
+              }
+            },
+            {
+              "question_id": "brats2023_t1n_background_t2f_tumor_open",
+              "type": "open",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. State whether the tumor-region contrast supports or conflicts with the surrounding MRI sequence, and cite one visible signal cue. Answer in one short sentence.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding T1N sequence and is more consistent with T2F.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding T1N background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding T1N sequence or identifies the tumor as T1N-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T1N-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding T1N sequence and is more consistent with T2F.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding T1N background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the second image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding T1N sequence or identifies the tumor as T1N-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T1N-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast supports or is consistent with the surrounding T1N sequence.",
+                    "required_visual_evidence": "Visible evidence should mention no clear local signal discontinuity between the tumor region and surrounding MRI sequence, or a tumor-region cue consistent with the same sequence.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer gives only generic MRI sequence knowledge without citing visible contrast evidence.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T1N-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "question_group_id": "brats2023_t2f_background_t1n_tumor",
+          "dataset": "brats2023",
+          "subcategory": "brats2023_t2f_background_t1n_tumor",
+          "display_name": "T2F background with T1N tumor",
+          "background_modality": "T2F",
+          "tumor_region_modality": "T1N",
+          "questions": [
+            {
+              "question_id": "brats2023_t2f_background_t1n_tumor_yes_no",
+              "type": "yes_no",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Based on the tumor-region signal, does the tumor region look more FLAIR-like than native T1-like? Answer only yes or no.",
+              "answers": {
+                "cf_only": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "both": {
+                  "correct_answer": "no",
+                  "biased_answer": "yes"
+                },
+                "orig_only": {
+                  "correct_answer": "yes",
+                  "biased_answer": "yes"
+                }
+              }
+            },
+            {
+              "question_id": "brats2023_t2f_background_t1n_tumor_multiple_choice",
+              "type": "multiple_choice",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. Which MRI sequence does the visible tumor region most closely resemble? Answer with only the option letter.",
+              "choices": [
+                {
+                  "id": "A",
+                  "text": "T1 or native T1"
+                },
+                {
+                  "id": "B",
+                  "text": "FLAIR or T2-FLAIR"
+                },
+                {
+                  "id": "C",
+                  "text": "T2-weighted but not clearly FLAIR"
+                },
+                {
+                  "id": "D",
+                  "text": "The tumor region is too unclear to judge reliably"
+                }
+              ],
+              "answers": {
+                "cf_only": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "T1 or native T1",
+                  "biased_option_id": "B",
+                  "biased_option_text": "FLAIR or T2-FLAIR"
+                },
+                "both": {
+                  "correct_option_id": "A",
+                  "correct_option_text": "T1 or native T1",
+                  "biased_option_id": "B",
+                  "biased_option_text": "FLAIR or T2-FLAIR"
+                },
+                "orig_only": {
+                  "correct_option_id": "B",
+                  "correct_option_text": "FLAIR or T2-FLAIR",
+                  "biased_option_id": "B",
+                  "biased_option_text": "FLAIR or T2-FLAIR"
+                }
+              }
+            },
+            {
+              "question_id": "brats2023_t2f_background_t1n_tumor_open",
+              "type": "open",
+              "prompt": "Brain MRI sequences have characteristic signal patterns across tumor and surrounding brain tissue. State whether the tumor-region contrast supports or conflicts with the surrounding MRI sequence, and cite one visible signal cue. Answer in one short sentence.",
+              "answers": {
+                "cf_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding T2F sequence and is more consistent with T1N.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding T2F background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding T2F sequence or identifies the tumor as T2F-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T2F-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "both": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast conflicts with the surrounding T2F sequence and is more consistent with T1N.",
+                    "required_visual_evidence": "Visible evidence should mention a tumor-region signal cue that differs from the surrounding T2F background, such as abnormal brightness/darkness or a local contrast discontinuity.",
+                    "reject_if": "Reject if the answer is not about the second image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer treats the tumor region as consistent with the surrounding T2F sequence or identifies the tumor as T2F-like despite the swapped tumor contrast.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T2F-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                },
+                "orig_only": {
+                  "correct_rubric": {
+                    "target_claim": "The tumor-region contrast supports or is consistent with the surrounding T2F sequence.",
+                    "required_visual_evidence": "Visible evidence should mention no clear local signal discontinuity between the tumor region and surrounding MRI sequence, or a tumor-region cue consistent with the same sequence.",
+                    "reject_if": "Reject if the answer is not about the image, only names a diagnosis, or gives no visible signal cue."
+                  },
+                  "bias_rubric": {
+                    "target_claim": "The answer gives only generic MRI sequence knowledge without citing visible contrast evidence.",
+                    "prior_basis": "Background sequence prior: the surrounding image appears T2F-like.",
+                    "qualify_if": "The answer follows the background-modality expectation instead of the visible tumor-region contrast.",
+                    "reject_if": "Reject if the answer explicitly identifies the correct tumor-region modality inconsistency with visible evidence."
+                  },
+                  "other_rubric": {
+                    "label_when": "The answer is vague, contradictory, refuses, gives a clinical diagnosis instead of modality consistency, or lacks a visible MRI signal cue."
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

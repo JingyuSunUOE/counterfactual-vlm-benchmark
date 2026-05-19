@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "preprocessing"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pillow",
+    "torch>=2.3.0",
+    "torchvision>=0.18.0",
+    "transformers>=4.57.0",
+    "accelerate>=0.30.0",
+    "openai>=1.40.0",
+    "anthropic>=0.34.0",
+    "google-genai>=1.0.0",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32.0",
+    "huggingface-hub>=0.24.0",
+    "hf-transfer>=0.1.8",
+    "safetensors>=0.4.5",
+    "pycocotools>=2.0.8",
+    "pandas>=2.2.0",
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",
+    "nibabel>=5.2.0",
+    "bitsandbytes>=0.43.1; platform_system == 'Linux'",
+    "vllm>=0.6.0; platform_system == 'Linux'",
+    "sglang>=0.4.0; platform_system == 'Linux'",
+    "sam3 @ git+https://github.com/facebookresearch/sam3.git ; platform_system == 'Linux' and python_version >= '3.12'",
+]
+
+[tool.setuptools]
+packages = []

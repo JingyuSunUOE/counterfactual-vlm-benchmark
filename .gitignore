@@ -1,0 +1,76 @@
+# Python caches and build outputs
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Local environments and IDE files
+.venv/
+venv/
+env/
+.idea/
+.vscode/
+
+# Secrets and machine-local config
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Local runtime, model, and provider caches
+.cache/
+models/
+checkpoints/
+sam3/
+provider_cache/
+**/provider_cache/
+**/.provider_cache/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Large original/counterfactual image assets.
+# Keep README files and question definitions in Git; distribute image assets separately.
+dataset/**
+!dataset/
+!dataset/README.md
+
+cf_dataset/**
+!cf_dataset/
+!cf_dataset/README.md
+!cf_dataset/*_questions.json
+
+# Generated visual evidence is large and reproducible.
+vision_dataset/
+
+# Evaluation outputs are generated/local artifacts and are not part of the GitHub release.
+eval_results/
+
+# Medical data.
+# Keep lightweight docs/question files, but never commit restricted BraTS source data,
+# generated standardized images, NIfTI volumes, or label-derived evidence.
+medical/**
+!medical/
+!medical/README.md
+!medical/modality_swapping/
+!medical/modality_swapping/*.md
+!medical/modality_swapping/*.json
+medical/BraTS2023_GLI/
+medical/**/*.nii
+medical/**/*.nii.gz
+medical/modality_swapping/standardized/
+medical/modality_swapping/samples/
+medical/modality_swapping/T1_FLAIR*/
+
+# Temporary outputs
+tmp/
+temp/
+*.tmp
+hf_dataset_release/
+release_logs/
