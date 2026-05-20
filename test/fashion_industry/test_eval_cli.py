@@ -7,13 +7,17 @@ import tempfile
 from pathlib import Path
 import json
 
+from PIL import Image
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
-        evidence_manifest = build_temp_evidence_manifest(Path(tmp))
+        tmp_path = Path(tmp)
+        test_content_based_mime_detection(tmp_path)
+        evidence_manifest = build_temp_evidence_manifest(tmp_path)
         checks = [
         (
             "eval help",
@@ -38,6 +42,7 @@ def main() -> int:
                 "--server-hf-model-id",
                 "--dry-run",
                 "--report",
+                "--output-root",
                 "--resume",
                 "--max-retries",
                 "--stop-on-quota",
@@ -112,9 +117,11 @@ def main() -> int:
                 "all",
                 "--limit",
                 "1",
+                "--output-root",
+                str(tmp_path / "cf_only_output_root"),
                 "--dry-run",
             ],
-            ["model=gpt-4.1", "pending=", "image_paths"],
+            ["model=gpt-4.1", "pending=", "output_root=", "proposed_run_dir=", "image_paths"],
         ),
         (
             "fashion subset dry run",
@@ -254,6 +261,17 @@ def main() -> int:
             True,
         ),
         (
+            "custom output root report",
+            [
+                sys.executable,
+                "eval_code/fashion_industry/eval_pipeline.py",
+                "--report",
+                "--output-root",
+                str(tmp_path / "empty_report_root"),
+            ],
+            ["No eval_results directory found:"],
+        ),
+        (
             "report aggregation",
             [
                 sys.executable,
@@ -279,6 +297,45 @@ def main() -> int:
 
     print("fashion_industry eval CLI smoke tests passed.")
     return 0
+
+
+def test_content_based_mime_detection(tmp: Path) -> None:
+    sys.path.insert(0, str(REPO_ROOT / "eval_code" / "fashion_industry"))
+    import eval_pipeline
+    import requests
+
+    jpeg_with_png_suffix = tmp / "jpeg_bytes.png"
+    Image.new("RGB", (8, 8), color=(255, 0, 0)).save(jpeg_with_png_suffix, format="JPEG")
+    if eval_pipeline.guess_mime_type(str(jpeg_with_png_suffix)) != "image/jpeg":
+        raise SystemExit("guess_mime_type should detect JPEG content even with a .png suffix")
+
+    captured = {}
+    original_post = requests.post
+
+    class FakeResponse:
+        status_code = 200
+
+        @staticmethod
+        def json() -> dict:
+            return {"content": [{"type": "text", "text": "{ok}"}], "usage": {}}
+
+    def fake_post(url, *, headers=None, json=None, timeout=None):
+        captured["payload"] = json
+        return FakeResponse()
+
+    try:
+        requests.post = fake_post
+        response, error = eval_pipeline.query_claude([str(jpeg_with_png_suffix)], "What is visible?", model="claude-sonnet-4")
+    finally:
+        requests.post = original_post
+
+    if error:
+        raise SystemExit(f"query_claude fake request failed unexpectedly: {error}")
+    if response != "{ok}":
+        raise SystemExit(f"query_claude fake response mismatch: {response!r}")
+    media_type = captured["payload"]["messages"][0]["content"][0]["source"]["media_type"]
+    if media_type != "image/jpeg":
+        raise SystemExit(f"Claude payload should use image/jpeg, got {media_type!r}")
 
 
 def build_temp_evidence_manifest(tmp: Path) -> dict:

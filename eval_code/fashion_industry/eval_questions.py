@@ -26,8 +26,6 @@ PRIOR_PRIME_PREFIX = (
 DISPLAY_NAME_MAP = {
     "traffic_light": "traffic light",
     "road_sign": "STOP road sign",
-    "pingpong_ball": "table tennis ball",
-    "football": "soccer ball",
     "basketball": "basketball",
     "tennis_ball": "tennis ball",
     "piano_keyboard": "piano keyboard",
@@ -47,12 +45,6 @@ EVALUATION_TARGETS = {
     ("basketball", 1): "the dominant surface color of the basketball",
     ("basketball", 2): "the dominant surface color of the basketball",
     ("basketball", 3): "the dominant surface color of the basketball",
-    ("football", 1): "the dominant color of the soccer ball surface",
-    ("football", 2): "the dominant color of the soccer ball surface",
-    ("football", 3): "the dominant color of the soccer ball surface",
-    ("pingpong_ball", 1): "the color of the ping pong ball",
-    ("pingpong_ball", 2): "the color of the ping pong ball",
-    ("pingpong_ball", 3): "the color of the ping pong ball",
     ("tennis_ball", 1): "the color of the tennis ball",
     ("tennis_ball", 2): "the color of the tennis ball",
     ("tennis_ball", 3): "the color of the tennis ball",
@@ -97,8 +89,6 @@ EVALUATION_TARGETS = {
 
 DISTRACTOR_POOLS = {
     "basketball": ["red", "yellow", "white", "brown"],
-    "football": ["red", "yellow", "brown", "pink"],
-    "pingpong_ball": ["yellow", "red", "brown", "black"],
     "tennis_ball": ["orange", "white", "brown", "black"],
     "road_sign": ["white", "brown", "pink", "orange"],
     "traffic_light": ["blue-red-green", "yellow-green-red", "red-green-yellow", "green-red-yellow"],
@@ -187,48 +177,6 @@ QUESTION_DESIGNS = {
         "Describe the visible background color of the octagonal sign.",
         "Does the visible STOP sign have the normally expected red background?",
         _answer("yellow", "red"),
-    ),
-    ("pingpong_ball", 1): _design(
-        "Table tennis balls are commonly expected to be white or orange.",
-        "What is the visible color of the table tennis ball?",
-        "Describe the visible color of the ball.",
-        "Does the ball have a normally expected white or orange color?",
-        _answer("green", "white/orange"),
-    ),
-    ("pingpong_ball", 2): _design(
-        "Table tennis balls are commonly expected to be white or orange.",
-        "What is the visible color of the table tennis ball?",
-        "Describe the visible color of the ball.",
-        "Does the ball have a normally expected white or orange color?",
-        _answer("blue", "white/orange"),
-    ),
-    ("pingpong_ball", 3): _design(
-        "Table tennis balls are commonly expected to be white or orange.",
-        "What is the visible color of the table tennis ball?",
-        "Describe the visible color of the ball.",
-        "Does the ball have a normally expected white or orange color?",
-        _answer("purple", "white/orange"),
-    ),
-    ("football", 1): _design(
-        "Soccer balls are commonly expected to have a black-and-white panel pattern.",
-        "What is the visible overall surface color pattern of the soccer ball?",
-        "Describe the visible color appearance of the ball surface.",
-        "Does the soccer ball show the normally expected black-and-white pattern?",
-        _answer("all red", "black and white"),
-    ),
-    ("football", 2): _design(
-        "Soccer balls are commonly expected to have a black-and-white panel pattern.",
-        "What is the visible overall surface color pattern of the soccer ball?",
-        "Describe the visible color appearance of the ball surface.",
-        "Does the soccer ball show the normally expected black-and-white pattern?",
-        _answer("all blue", "black and white"),
-    ),
-    ("football", 3): _design(
-        "Soccer balls are commonly expected to have a black-and-white panel pattern.",
-        "What is the visible overall surface color pattern of the soccer ball?",
-        "Describe the visible color appearance of the ball surface.",
-        "Does the soccer ball show the normally expected black-and-white pattern?",
-        _answer("all green", "black and white"),
     ),
     ("basketball", 1): _design(
         "Basketballs are commonly expected to have an orange surface.",
@@ -700,54 +648,6 @@ EVAL_INDUSTRY = {
                 "Q1": _open_question("What color is the background of this stop sign?"),
                 "Q2": _open_question("What single word is written on this sign in capital letters?"),
                 "Q3": _yes_no_question("Is this stop sign red?"),
-            },
-        },
-    },
-    "pingpong_ball": {
-        "sanity": {
-            "Q1": _open_question("What color is this ping pong ball?"),
-            "Q2": _open_question("Describe the color of the table tennis ball in this image."),
-            "Q3": _yes_no_question("Is this a white or orange ping pong ball?"),
-        },
-        "mods": {
-            1: {
-                "Q1": _open_question("What color is this ping pong ball?"),
-                "Q2": _open_question("Describe the color of this table tennis ball."),
-                "Q3": _yes_no_question("Is this a white or orange ping pong ball?"),
-            },
-            2: {
-                "Q1": _open_question("What color is this ping pong ball?"),
-                "Q2": _open_question("Describe the color of this table tennis ball."),
-                "Q3": _yes_no_question("Is this a white or orange ping pong ball?"),
-            },
-            3: {
-                "Q1": _open_question("What color is this ping pong ball?"),
-                "Q2": _open_question("Describe the color of this table tennis ball."),
-                "Q3": _yes_no_question("Is this a white or orange ping pong ball?"),
-            },
-        },
-    },
-    "football": {
-        "sanity": {
-            "Q1": _open_question("What color is this soccer ball?"),
-            "Q2": _open_question("Describe the color pattern of this soccer ball."),
-            "Q3": _yes_no_question("Is this a black and white soccer ball?"),
-        },
-        "mods": {
-            1: {
-                "Q1": _open_question("What color is this soccer ball?"),
-                "Q2": _open_question("Describe the overall color of this soccer ball."),
-                "Q3": _yes_no_question("Is this a black and white soccer ball?"),
-            },
-            2: {
-                "Q1": _open_question("What color is this soccer ball?"),
-                "Q2": _open_question("Describe the overall color of this soccer ball."),
-                "Q3": _yes_no_question("Is this a black and white soccer ball?"),
-            },
-            3: {
-                "Q1": _open_question("What color is this soccer ball?"),
-                "Q2": _open_question("Describe the overall color of this soccer ball."),
-                "Q3": _yes_no_question("Is this a black and white soccer ball?"),
             },
         },
     },

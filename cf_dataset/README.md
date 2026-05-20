@@ -25,7 +25,7 @@ cf_dataset/
 | `if_exist_cf` | 160 | 160 | One active CF per original |
 | `counting_cf` | 256 | 256 | One active CF per counting annotation |
 | `fashion_cf` | 456 | 455 | One manually excluded invalid fashion CF remains on disk but is not active metadata |
-| `industry_cf` | 462 | 462 | Disk files and active metadata are aligned |
+| `industry_cf` | 348 | 348 | Disk files and active metadata are aligned |
 
 For formal evaluation, use metadata and official runners rather than directory counts alone.
 
@@ -115,7 +115,7 @@ Earlier metadata snapshots undercounted existing files because skipped pre-exist
 
 Tests priors about common object colors, patterns, orders, and configurations.
 
-Active metadata contains 462 CF records. Counterfactual edits include changes to:
+Active metadata contains 348 CF records. Counterfactual edits include changes to:
 
 - canonical object color
 - pattern or stripe structure

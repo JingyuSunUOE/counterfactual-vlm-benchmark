@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import mimetypes
 import os
 import sys
 import time
@@ -30,6 +29,7 @@ from structured_outputs import (
     structured_record_fields,
     strip_thinking_blocks,
 )
+from mime_utils import detect_mime_type as detect_content_mime_type
 
 from eval_common import (
     DEFAULT_QUESTIONS_PATH,
@@ -1195,8 +1195,7 @@ def extract_chat_text(response: Any) -> str:
 
 
 def detect_mime_type(path: Path) -> str:
-    mime_type, _ = mimetypes.guess_type(path.name)
-    return mime_type or "application/octet-stream"
+    return detect_content_mime_type(path)
 
 
 def path_to_data_url(path: Path) -> str:

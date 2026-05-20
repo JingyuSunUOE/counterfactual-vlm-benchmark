@@ -9,22 +9,6 @@
                 "ball"
             ]
         },
-        "football": {
-            "object_prompt": "soccer ball",
-            "fallback_object_prompts": [
-                "football ball",
-                "sports ball",
-                "ball"
-            ]
-        },
-        "pingpong_ball": {
-            "object_prompt": "ping pong ball",
-            "fallback_object_prompts": [
-                "table tennis ball",
-                "small ball",
-                "ball"
-            ]
-        },
         "tennis_ball": {
             "object_prompt": "tennis ball",
             "fallback_object_prompts": [

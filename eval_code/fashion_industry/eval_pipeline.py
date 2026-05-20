@@ -47,6 +47,7 @@ from structured_outputs import (
     strip_thinking_blocks,
     structured_record_fields,
 )
+from mime_utils import detect_mime_type
 
 from eval_questions import (
     BOTH_RAW_PAIR_DIFFERENCE_PREFIX,
@@ -107,6 +108,7 @@ RESUME_MATCH_IGNORED_KEYS = {
     "stop_on_quota",
     "max_consecutive_errors",
     "resume",
+    "output_root",
     "server_vram_plan",
     "judge_server_vram_plan",
 }
@@ -469,12 +471,7 @@ def encode_image(path: str) -> str:
 
 
 def guess_mime_type(path: str) -> str:
-    suffix = Path(path).suffix.lower()
-    if suffix == ".png":
-        return "image/png"
-    if suffix in {".jpg", ".jpeg"}:
-        return "image/jpeg"
-    return "application/octet-stream"
+    return detect_mime_type(path)
 
 
 def make_data_url(path: str) -> str:
@@ -2151,12 +2148,21 @@ def _task_signature(model_name, input_mode, task):
     )
 
 
-def _load_done_set(model_name, input_mode, phase, question_types, tool_condition="raw"):
+def _resolve_output_root(output_root=None):
+    path = Path(output_root) if output_root is not None else RAW_RESULTS_DIR
+    path = path.expanduser()
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    return path.resolve(strict=False)
+
+
+def _load_done_set(model_name, input_mode, phase, question_types, tool_condition="raw", output_root=None):
     done = set()
-    if not RAW_RESULTS_DIR.exists():
+    output_root = _resolve_output_root(output_root)
+    if not output_root.exists():
         return done
     allowed_question_types = set(question_types)
-    for path in _result_jsonl_paths():
+    for path in _result_jsonl_paths(output_root):
         with open(path) as handle:
             for line in handle:
                 if not line.strip():
@@ -2178,12 +2184,19 @@ def _load_done_set(model_name, input_mode, phase, question_types, tool_condition
     return done
 
 
-def _result_jsonl_paths():
+def _result_jsonl_paths(output_root=None):
+    output_root = _resolve_output_root(output_root)
     paths = []
-    if RAW_RESULTS_DIR.exists():
-        paths.extend(sorted(RAW_RESULTS_DIR.glob("*.jsonl")))
-        paths.extend(sorted(RAW_RESULTS_DIR.glob("*/records.jsonl")))
-    return paths
+    if output_root.exists():
+        if output_root.is_file():
+            paths.append(output_root)
+        else:
+            records_path = output_root / "records.jsonl"
+            if records_path.exists():
+                paths.append(records_path)
+            paths.extend(sorted(output_root.glob("*.jsonl")))
+            paths.extend(sorted(output_root.glob("*/records.jsonl")))
+    return sorted(set(paths))
 
 
 def _resolve_models(model=None, model_set="all"):
@@ -2201,14 +2214,14 @@ def _resolve_judge_model(model_name, judge):
     return JUDGE_MODELS[model_group]
 
 
-def _jsonl_name(phase, input_mode, model_name, question_types):
+def _jsonl_name(phase, input_mode, model_name, question_types, output_root=None):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     qt_label = "-".join(question_types)
-    return RAW_RESULTS_DIR / f"eval_{phase}_{input_mode}_{model_name}_{qt_label}_{timestamp}.jsonl"
+    return _resolve_output_root(output_root) / f"eval_{phase}_{input_mode}_{model_name}_{qt_label}_{timestamp}.jsonl"
 
 
-def _run_dir_name(phase, input_mode, model_name, question_types):
-    return _jsonl_name(phase, input_mode, model_name, question_types).with_suffix("")
+def _run_dir_name(phase, input_mode, model_name, question_types, output_root=None):
+    return _jsonl_name(phase, input_mode, model_name, question_types, output_root=output_root).with_suffix("")
 
 
 def resolve_server_preflight_plans(
@@ -2349,6 +2362,7 @@ def run_eval(
     evidence_qc_filter="pass",
     missing_evidence_policy="skip",
     image_group_labels="off",
+    output_root=None,
 ):
     """
     Run evaluation for one model.
@@ -2405,8 +2419,8 @@ def run_eval(
             image_group_labels=image_group_labels,
         )
 
-    done_set = _load_done_set(model_name, input_mode, phase, question_types, tool_condition=tool_condition) if resume != "off" else set()
-    pending_tasks = [task for task in tasks if _task_signature(model_name, input_mode, task) not in done_set]
+    output_root_path = _resolve_output_root(output_root)
+    pending_tasks = list(tasks)
     if limit is not None:
         pending_tasks = pending_tasks[:limit]
 
@@ -2449,6 +2463,11 @@ def run_eval(
         f"tool_condition={tool_condition} "
         f"question_types={','.join(question_types)} total={len(tasks)} "
         f"skipped={len(tasks) - len(pending_tasks)} pending={len(pending_tasks)}"
+    )
+    print(
+        f"output_root={output_root_path} "
+        f"proposed_run_dir={_run_dir_name(phase, input_mode, model_name, question_types, output_root=output_root_path)} "
+        f"resume={resume} question_design_version={QUESTION_DESIGN_VERSION}"
     )
     print(
         f"judge_model={judge_model} judge_provider={judge_provider} "
@@ -2514,12 +2533,13 @@ def run_eval(
             print(json.dumps(preview, ensure_ascii=False))
         return pending_tasks
 
-    RAW_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    output_root_path.mkdir(parents=True, exist_ok=True)
     run_config_base = {
         "script_type": "fashion_industry",
         "phase": phase,
         "model": model_name,
         "input_mode": input_mode,
+        "output_root": str(output_root_path),
         "question_types": list(question_types),
         "question_design_version": QUESTION_DESIGN_VERSION,
         "prime": "on" if prime else "off",
@@ -2586,7 +2606,7 @@ def run_eval(
         "empty_retry_max_output_tokens": empty_retry_max_output_tokens,
         "reasoning_effort": reasoning_effort,
     }
-    resume_run_dir = resolve_resume_run_dir(RAW_RESULTS_DIR, resume, run_config_base)
+    resume_run_dir = resolve_resume_run_dir(output_root_path, resume, run_config_base)
     if resume_run_dir is not None:
         run_dir = resume_run_dir
         run_id = run_dir.name
@@ -2597,7 +2617,13 @@ def run_eval(
             pending_tasks = pending_tasks[:limit]
         print(f"Resuming run: {run_dir}")
     else:
-        run_dir = _run_dir_name(phase=phase, input_mode=input_mode, model_name=model_name, question_types=question_types)
+        run_dir = _run_dir_name(
+            phase=phase,
+            input_mode=input_mode,
+            model_name=model_name,
+            question_types=question_types,
+            output_root=output_root_path,
+        )
         run_id = run_dir.name
         existing_records = []
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -3065,16 +3091,17 @@ def run_eval(
     return results
 
 
-def generate_report(phase=None, input_mode=None):
+def generate_report(phase=None, input_mode=None, output_root=None):
     """
     Aggregate JSONL eval_results using judge_label.
     """
-    if not RAW_RESULTS_DIR.exists():
-        print("No eval_results directory found.")
+    output_root = _resolve_output_root(output_root)
+    if not output_root.exists():
+        print(f"No eval_results directory found: {output_root}")
         return
 
     records = []
-    for path in _result_jsonl_paths():
+    for path in _result_jsonl_paths(output_root):
         with open(path) as handle:
             for line in handle:
                 if not line.strip():
@@ -3100,8 +3127,9 @@ def generate_report(phase=None, input_mode=None):
 
     print("=" * 72)
     print(f"Report rows={len(records)}")
+    print(f"output_root={output_root}")
     partial_runs = []
-    for run_dir in sorted(path for path in RAW_RESULTS_DIR.glob("*") if path.is_dir()):
+    for run_dir in sorted(path for path in output_root.glob("*") if path.is_dir()):
         checkpoint = load_checkpoint(run_dir)
         if checkpoint and checkpoint.get("run_status") != "completed":
             partial_runs.append((run_dir.name, checkpoint.get("run_status"), checkpoint.get("last_error_kind")))
@@ -3367,6 +3395,12 @@ def main():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--report", action="store_true")
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=RAW_RESULTS_DIR,
+        help="Run family directory. Each run writes a timestamped subdirectory under this root.",
+    )
     parser.add_argument("--domain", choices=["industry", "fashion"], default=None)
     parser.add_argument("--key", default=None)
     parser.add_argument("--tool-condition", choices=TOOL_CONDITIONS, default="raw")
@@ -3383,7 +3417,7 @@ def main():
     args = parser.parse_args()
 
     if args.report:
-        generate_report(phase=args.phase, input_mode=args.input_mode)
+        generate_report(phase=args.phase, input_mode=args.input_mode, output_root=args.output_root)
         return
 
     if args.phase == "sanity" and args.question_types == "all":
@@ -3452,6 +3486,7 @@ def main():
             evidence_qc_filter=args.evidence_qc_filter,
             missing_evidence_policy=args.missing_evidence_policy,
             image_group_labels=args.image_group_labels,
+            output_root=args.output_root,
         )
 
 

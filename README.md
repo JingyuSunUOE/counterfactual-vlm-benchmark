@@ -33,7 +33,7 @@ Counts below refer to the current active metadata in this repository. `Originals
 | `if_exist` | Objects should contain canonical parts | 160 | 160 | 80/160 = 50.0% | `bbox`, `crop`, `zoom_panel` |
 | `counting` | Objects should have normal part counts | 178 | 256 | 50/178 = 28.1% | `bbox`, `crop`, `zoom_panel`, `outline` |
 | `fashion` | Logos and monograms should follow canonical layouts | 76 | 455 | 37/76 = 48.7% | `bbox`, `crop`, `zoom_panel` |
-| `industry` | Common objects should have canonical colors, patterns, or orders | 77 | 462 | 37/77 = 48.1% | `bbox`, `crop`, `zoom_panel` |
+| `industry` | Common objects should have canonical colors, patterns, or orders | 58 | 348 | 28/58 = 48.3% | `bbox`, `crop`, `zoom_panel` |
 | `medical_modality` | Tumor appearance should match global MRI sequence appearance | 2502 | 2502 | 0/2502 = 0.0% | `bbox`, `contour`, `crop`, `zoom_panel` |
 
 Medical data is treated as a separate domain and is not stored under `dataset/` or `cf_dataset/`. Formal medical experiments use the `clean` BraTS2023 modality-swap pool and typically run on a stratified 10% sample.
@@ -124,13 +124,62 @@ Do not commit `.env` files.
 
 ## Download Data
 
-The GitHub repository does not include image data, generated visual evidence, or local evaluation outputs. Download the data payload from the Hugging Face Dataset release into the project root:
+The GitHub repository does not include image data, generated visual evidence, or local evaluation outputs. The data payload is hosted on Hugging Face.
+
+For small machines, clusters with shared filesystems, or unstable network sessions, download by category instead of pulling the full payload in one command. This avoids long waits on Hugging Face file locks when downloading many small visual-evidence files.
+
+Recommended first step: download core images, question files, metadata, and medical standardized images, but skip generated visual evidence:
+
+```bash
+python scripts/download_hf_dataset.py \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
+  --local-dir . \
+  --exclude "vision_dataset/**"
+```
+
+Then download only the visual-evidence directories needed for your experiment:
+
+```bash
+# If-exist tool-condition evidence
+python scripts/download_hf_dataset.py \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
+  --local-dir . \
+  --include "vision_dataset/if_exist/**"
+
+# Counting tool-condition evidence
+python scripts/download_hf_dataset.py \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
+  --local-dir . \
+  --include "vision_dataset/counting/**"
+
+# Fashion tool-condition evidence
+python scripts/download_hf_dataset.py \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
+  --local-dir . \
+  --include "vision_dataset/fashion/**"
+
+# Industry tool-condition evidence
+python scripts/download_hf_dataset.py \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
+  --local-dir . \
+  --include "vision_dataset/industry/**"
+
+# Medical label-derived evidence
+python scripts/download_hf_dataset.py \
+  --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
+  --local-dir . \
+  --include "vision_dataset/medical_modality/**"
+```
+
+If you prefer a single full download, run:
 
 ```bash
 python scripts/download_hf_dataset.py \
   --repo-id JingyuSun/counterfactual-vlm-benchmark-data \
   --local-dir .
 ```
+
+If a download is interrupted, rerun the same command. Completed files are reused. If the Hugging Face CLI repeatedly prints `Still waiting to acquire lock`, stop duplicate download processes and remove stale lock files only after confirming no download is still running.
 
 After download, the expected layout is:
 

@@ -25,7 +25,7 @@ Counts reflect the current active metadata and manually filtered image directori
 | `if_exist` | Expected object parts | 160 | 80/160 = 50.0% | camel, elephant trunk, fish fin, rabbit |
 | `counting` | Countable body parts | 178 | 50/178 = 28.1% | bird, insect, hand/paw |
 | `fashion_dataset` | Logo and monogram layouts | 76 | 37/76 = 48.7% | Burberry, Celine, Chanel, Gucci, Loewe, LV, Ralph Lauren, YSL |
-| `industry_dataset` | Common object colors, patterns, and orders | 77 | 37/77 = 48.1% | balls, signs, traffic lights, cards, keyboards |
+| `industry_dataset` | Common object colors, patterns, and orders | 58 | 28/58 = 48.3% | balls, signs, traffic lights, cards, keyboards |
 
 `AI-related originals` uses `source_variant=ai` for `if_exist` and `counting`. For `fashion_dataset` and `industry_dataset`, it is inferred from paired metadata where the original source is marked by `source_type=cf_from_ai`.
 
@@ -93,11 +93,10 @@ The `industry` benchmark tests priors about common object appearance.
 Active category folders:
 
 ```text
-basketball, football, piano_keyboard, pingpong_ball, poker_cards,
-road_sign, tennis_ball, traffic_light
+basketball, piano_keyboard, poker_cards, road_sign, tennis_ball, traffic_light
 ```
 
-The active set has 77 originals after manual quality filtering. Counterfactual edits target properties such as color, pattern, order, layout, and object configuration.
+The active set has 58 originals after manual quality filtering. Counterfactual edits target properties such as color, pattern, order, layout, and object configuration.
 
 ## Image Normalization
 
