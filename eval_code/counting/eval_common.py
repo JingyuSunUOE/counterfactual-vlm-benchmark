@@ -249,6 +249,24 @@ def load_annotations(path: Path) -> List[Dict[str, Any]]:
     return records
 
 
+def resolve_counting_data_path(value: str | Path) -> Path:
+    """Rebase portable counting paths that may contain stale repo-root prefixes."""
+    raw = Path(value).expanduser()
+    if raw.is_absolute() and raw.exists():
+        return raw.resolve()
+    value_text = str(value)
+    for marker in (
+        "dataset/counting/",
+        "cf_dataset/counting_cf/",
+    ):
+        marker_index = value_text.find(marker)
+        if marker_index != -1:
+            return (REPO_ROOT / value_text[marker_index:]).resolve(strict=False)
+    if raw.is_absolute():
+        return raw.resolve(strict=False)
+    return (REPO_ROOT / raw).resolve(strict=False)
+
+
 def build_group_specs(benchmark: Dict[str, Any], *, annotations: Sequence[Dict[str, Any]]) -> List[GroupSpec]:
     question_groups = benchmark["categories"][0]["question_groups"]
     questions_by_group: Dict[str, List[QuestionSpec]] = {}
@@ -275,8 +293,8 @@ def build_group_specs(benchmark: Dict[str, Any], *, annotations: Sequence[Dict[s
         group_id = raw["question_group_id"]
         if group_id not in questions_by_group:
             raise SystemExit(f"Annotation references missing question_group_id: {group_id}")
-        original_path = Path(raw["original_path"]).expanduser().resolve()
-        cf_path = Path(raw["cf_path"]).expanduser().resolve()
+        original_path = resolve_counting_data_path(raw["original_path"])
+        cf_path = resolve_counting_data_path(raw["cf_path"])
         for image_path in (original_path, cf_path):
             if not image_path.exists():
                 raise SystemExit(f"Counting annotation image path does not exist: {image_path}")
