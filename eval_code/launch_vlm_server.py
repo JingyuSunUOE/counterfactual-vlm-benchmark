@@ -27,6 +27,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dtype", choices=SUPPORTED_SERVER_DTYPES, default="bfloat16")
     parser.add_argument("--tensor-parallel-size", default="auto")
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.90)
+    parser.add_argument(
+        "--max-model-len",
+        type=int,
+        default=None,
+        help="Optional vLLM --max-model-len. Use this to avoid very large model defaults when the benchmark does not need long context.",
+    )
     parser.add_argument("--reserve-gb", type=float, default=4.0)
     parser.add_argument("--load-in-4bit", action="store_true", help="Use explicit 4-bit memory estimation for preflight.")
     parser.add_argument("--dry-run", action="store_true", help="Print the launch command without starting the server.")
@@ -91,6 +97,8 @@ def build_command(*, args: argparse.Namespace, tensor_parallel_size: int) -> Lis
             "--gpu-memory-utilization",
             str(args.gpu_memory_utilization),
         ]
+        if args.max_model_len is not None:
+            command.extend(["--max-model-len", str(args.max_model_len)])
     elif args.framework == "sglang":
         command = [
             sys.executable,

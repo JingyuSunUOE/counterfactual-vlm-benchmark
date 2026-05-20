@@ -69,7 +69,7 @@ def fake_devices(free_gb_values: list[float]) -> list[CudaDeviceSnapshot]:
 def test_dual_auto_separate() -> None:
     plan = plan_dual_server_vram(
         backbone_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        judge_model_id="Qwen/Qwen3-8B-Instruct",
+        judge_model_id="Qwen/Qwen3-8B",
         devices=fake_devices([80, 80]),
         placement_policy="auto",
     )
@@ -85,7 +85,7 @@ def test_dual_auto_separate() -> None:
 def test_dual_auto_shared() -> None:
     plan = plan_dual_server_vram(
         backbone_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        judge_model_id="Qwen/Qwen3-8B-Instruct",
+        judge_model_id="Qwen/Qwen3-8B",
         devices=fake_devices([80]),
         placement_policy="auto",
         shared_gpu_total_utilization=0.88,
@@ -104,7 +104,7 @@ def test_dual_auto_shared() -> None:
 def test_dual_auto_fails_when_shared_too_large() -> None:
     plan = plan_dual_server_vram(
         backbone_model_id="Qwen/Qwen2.5-VL-72B-Instruct",
-        judge_model_id="Qwen/Qwen3-8B-Instruct",
+        judge_model_id="Qwen/Qwen3-8B",
         devices=fake_devices([80]),
         placement_policy="auto",
     )
@@ -115,7 +115,7 @@ def test_dual_auto_fails_when_shared_too_large() -> None:
 def test_dual_auto_fails_when_large_backbone_uses_all_gpus() -> None:
     plan = plan_dual_server_vram(
         backbone_model_id="Qwen/Qwen2.5-VL-72B-Instruct",
-        judge_model_id="Qwen/Qwen3-8B-Instruct",
+        judge_model_id="Qwen/Qwen3-8B",
         devices=fake_devices([80, 80]),
         placement_policy="auto",
     )
@@ -126,7 +126,7 @@ def test_dual_auto_fails_when_large_backbone_uses_all_gpus() -> None:
 def test_dual_explicit_respects_manual_gpu_ids() -> None:
     plan = plan_dual_server_vram(
         backbone_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        judge_model_id="Qwen/Qwen3-8B-Instruct",
+        judge_model_id="Qwen/Qwen3-8B",
         devices=fake_devices([80, 80]),
         placement_policy="auto",
         backbone_gpu_ids="0",
@@ -142,7 +142,7 @@ def test_dual_explicit_respects_manual_gpu_ids() -> None:
 def test_dual_unknown_model_reports_size_hint() -> None:
     plan = plan_dual_server_vram(
         backbone_model_id="local-backbone",
-        judge_model_id="Qwen/Qwen3-8B-Instruct",
+        judge_model_id="Qwen/Qwen3-8B",
         devices=fake_devices([80, 80]),
         placement_policy="auto",
     )

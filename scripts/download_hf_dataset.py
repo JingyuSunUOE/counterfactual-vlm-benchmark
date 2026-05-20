@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPO_ID = "JingyuSun/counterfactual-vlm-benchmark-data"
@@ -25,9 +27,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    load_dotenv(PROJECT_ROOT / ".env")
     args = parse_args()
     if not args.repo_id:
         raise SystemExit("Provide --repo-id or set HF_DATASET_REPO_ID.")
+    token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
     local_dir = resolve_path(args.local_dir)
     command = [
         "hf",
@@ -47,6 +51,7 @@ def main() -> int:
 
     print("download_command=" + " ".join(command))
     print(f"target_local_dir={local_dir}")
+    print(f"hf_token_loaded={bool(token)}")
     if args.dry_run:
         print("dry_run=true; no files downloaded.")
         print_expected_layout(local_dir)
@@ -54,7 +59,11 @@ def main() -> int:
 
     if shutil.which("hf") is None:
         raise SystemExit("hf CLI is not installed or not on PATH.")
-    result = subprocess.run(command, cwd=PROJECT_ROOT, check=False)
+    env = os.environ.copy()
+    if token:
+        env["HF_TOKEN"] = token
+        env.setdefault("HUGGINGFACE_HUB_TOKEN", token)
+    result = subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=False)
     if result.returncode != 0:
         return result.returncode
     check_layout(local_dir)

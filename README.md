@@ -106,10 +106,46 @@ For GitHub distribution, large image assets, visual evidence, reports, raw API r
 
 ## Installation
 
-Create an environment and install the project in editable mode:
+Create an environment and install the project in editable mode. This is enough for closed-model API evaluation, metadata utilities, analysis, and most non-live tests:
 
 ```bash
 pip install -e .
+```
+
+For local open-source VLM evaluation through `eval_code/run_server_eval.py`, use a Linux NVIDIA GPU environment with a CUDA runtime that matches the PyTorch and vLLM wheels. The tested cluster configuration is:
+
+- Linux x86_64 with NVIDIA GPUs; H100 80GB is the primary tested target.
+- NVIDIA driver new enough for CUDA 12.8 runtime images.
+- Python 3.12 for the CUDA server environment.
+- PyTorch CUDA 12.x wheels and vLLM installed with the same CUDA backend.
+
+Do not install vLLM with an unconstrained `pip install vllm` in this environment. Recent wheels may resolve to a CUDA 13 runtime and fail at server startup with errors such as `libcudart.so.13: cannot open shared object file`. Qwen3-VL requires `vllm>=0.11.0`; for clusters with CUDA 12.8-capable drivers, pin vLLM and install with an explicit CUDA 12.8 backend:
+
+```bash
+python -m pip install --upgrade uv
+UV_TORCH_BACKEND=cu128 uv pip install -e .
+```
+
+If you build your own container manually, use a CUDA 12.8 base image or equivalent and install vLLM with the same backend:
+
+```bash
+uv pip install \
+  "vllm==0.11.1" \
+  --torch-backend=cu128 \
+  --extra-index-url "https://download.pytorch.org/whl/cu128" \
+  --index-strategy unsafe-best-match
+```
+
+Verify the serving stack after starting the container with NVIDIA runtime. The `vllm._C` import requires `libcuda.so.1`, which is provided by the host driver at `docker run --gpus all` time and is not available during a plain `docker build`:
+
+```bash
+python - <<'PY'
+import torch
+import vllm
+import vllm._C
+print("torch", torch.__version__, "cuda", torch.version.cuda)
+print("vllm CUDA extension ok")
+PY
 ```
 
 Closed-model evaluation requires provider API keys, usually configured through environment variables or a local `.env` file:
@@ -257,7 +293,7 @@ python eval_code/run_server_eval.py \
   --framework vllm \
   --model Qwen/Qwen3-VL-8B-Instruct \
   --served-model-name qwen3vl8b \
-  --judge-server-model Qwen/Qwen3-8B-Instruct \
+  --judge-server-model Qwen/Qwen3-8B \
   --judge-served-model-name qwen3-8b \
   --benchmark if_exist \
   --gpu-placement-policy auto \

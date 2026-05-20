@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -52,6 +53,7 @@ class ServerSpec:
     dtype: str
     tensor_parallel_size: str
     gpu_memory_utilization: float
+    max_model_len: Optional[int]
     reserve_gb: float
     load_in_4bit: bool
     keep_alive: bool
@@ -92,6 +94,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Tuple[argparse.Namespace
     parser.add_argument("--dtype", choices=SUPPORTED_SERVER_DTYPES, default="bfloat16")
     parser.add_argument("--tensor-parallel-size", default="auto")
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.90)
+    parser.add_argument(
+        "--server-max-model-len",
+        type=int,
+        default=None,
+        help="Optional vLLM --max-model-len for the backbone server.",
+    )
     parser.add_argument("--reserve-gb", type=float, default=4.0)
     parser.add_argument("--load-in-4bit", action="store_true", help="Use explicit 4-bit memory estimation for backbone preflight.")
     parser.add_argument("--judge-server-model", default=None, help="Optional HF model id or local path for a text-only judge server.")
@@ -103,6 +111,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Tuple[argparse.Namespace
     parser.add_argument("--judge-dtype", choices=SUPPORTED_SERVER_DTYPES, default=None)
     parser.add_argument("--judge-tensor-parallel-size", default=None)
     parser.add_argument("--judge-gpu-memory-utilization", type=float, default=None)
+    parser.add_argument(
+        "--judge-server-max-model-len",
+        type=int,
+        default=None,
+        help="Optional vLLM --max-model-len for the judge server. Defaults to --server-max-model-len when omitted.",
+    )
     parser.add_argument("--judge-reserve-gb", type=float, default=None)
     parser.add_argument("--judge-load-in-4bit", action="store_true")
     parser.add_argument(
@@ -238,6 +252,7 @@ def build_backbone_spec(args: argparse.Namespace) -> ServerSpec:
         dtype=args.dtype,
         tensor_parallel_size=str(args.tensor_parallel_size),
         gpu_memory_utilization=args.gpu_memory_utilization,
+        max_model_len=args.server_max_model_len,
         reserve_gb=args.reserve_gb,
         load_in_4bit=args.load_in_4bit,
         keep_alive=args.keep_server_alive,
@@ -259,6 +274,7 @@ def build_judge_spec(args: argparse.Namespace) -> Optional[ServerSpec]:
         dtype=args.judge_dtype or args.dtype,
         tensor_parallel_size=str(args.judge_tensor_parallel_size or args.tensor_parallel_size),
         gpu_memory_utilization=args.judge_gpu_memory_utilization or args.gpu_memory_utilization,
+        max_model_len=args.judge_server_max_model_len if args.judge_server_max_model_len is not None else args.server_max_model_len,
         reserve_gb=args.judge_reserve_gb if args.judge_reserve_gb is not None else args.reserve_gb,
         load_in_4bit=args.judge_load_in_4bit,
         keep_alive=args.keep_judge_server_alive,
@@ -409,6 +425,7 @@ def wait_runtime_ready(runtime: ServerRuntime, args: argparse.Namespace) -> None
         timeout_seconds=args.server_startup_timeout,
         poll_seconds=args.health_poll_seconds,
         label=runtime.spec.label,
+        log_path=runtime.spec.log_path if runtime.log_handle is not None else None,
     )
     runtime.ready_models = ready_models
     print(f"{runtime.spec.label}_ready=true url={runtime.spec.url} models={ready_models}")
@@ -453,6 +470,7 @@ def server_vram_request(spec: ServerSpec) -> Dict[str, Any]:
         "dtype": spec.dtype,
         "tensor_parallel_size": spec.tensor_parallel_size,
         "gpu_memory_utilization": spec.gpu_memory_utilization,
+        "max_model_len": spec.max_model_len,
         "reserve_gb": spec.reserve_gb,
         "load_in_4bit": spec.load_in_4bit,
     }
@@ -473,6 +491,7 @@ def build_server_launch_command(spec: ServerSpec, *, tensor_parallel_size: int) 
         port=spec.port,
         dtype=spec.dtype,
         gpu_memory_utilization=spec.gpu_memory_utilization,
+        max_model_len=spec.max_model_len,
     )
     command = build_command(args=launch_args, tensor_parallel_size=tensor_parallel_size)
     env = os.environ.copy()
@@ -535,23 +554,106 @@ def wait_for_server_ready(
     timeout_seconds: float,
     poll_seconds: float,
     label: str = "server",
+    log_path: Optional[Path] = None,
 ) -> List[str]:
     started = time.monotonic()
     next_report = 0.0
+    log_offset = 0
+    last_log_message = ""
     server_label = "server" if label == "server" else f"{label} server"
     while True:
         elapsed = time.monotonic() - started
         if process.poll() is not None:
-            raise SystemExit(f"{server_label} process exited before becoming ready. exit_code={process.returncode}")
+            tail = read_log_tail(log_path, max_lines=30)
+            detail = f"\n{label}_log_tail:\n{tail}" if tail else ""
+            raise SystemExit(f"{server_label} process exited before becoming ready. exit_code={process.returncode}{detail}")
         model_ids = fetch_model_ids(server_url, timeout=min(10.0, max(1.0, poll_seconds)))
         if model_ids is not None:
             return model_ids
         if elapsed >= timeout_seconds:
-            raise SystemExit(f"Timed out waiting for {server_label} readiness after {timeout_seconds:.0f} seconds.")
+            tail = read_log_tail(log_path, max_lines=30)
+            detail = f"\n{label}_log_tail:\n{tail}" if tail else ""
+            raise SystemExit(f"Timed out waiting for {server_label} readiness after {timeout_seconds:.0f} seconds.{detail}")
         if elapsed >= next_report:
             print(f"{label}_waiting_for_server elapsed_seconds={int(elapsed)} health_url={models_url(server_url)}")
+            log_offset, last_log_message = print_new_server_log_progress(
+                label=label,
+                log_path=log_path,
+                offset=log_offset,
+                last_message=last_log_message,
+            )
             next_report = elapsed + max(1.0, poll_seconds)
         time.sleep(max(1.0, poll_seconds))
+
+
+LOG_PROGRESS_PATTERNS = (
+    "Downloading",
+    "Fetching",
+    "Loading",
+    "Loading safetensors",
+    "Resolved architecture",
+    "Using max model len",
+    "Initializing",
+    "Starting to load model",
+    "Using FLASH",
+    "Using TRITON",
+    "GPU KV cache",
+    "Available KV cache",
+    "CUDA graph",
+    "Graph capturing",
+    "Started server process",
+    "Uvicorn running",
+    "Application startup complete",
+    "ERROR",
+    "Error",
+    "Traceback",
+    "Exception",
+    "out of memory",
+    "Killed",
+)
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def print_new_server_log_progress(*, label: str, log_path: Optional[Path], offset: int, last_message: str) -> Tuple[int, str]:
+    if log_path is None or not log_path.exists():
+        return offset, last_message
+    try:
+        with log_path.open("r", encoding="utf-8", errors="replace") as handle:
+            handle.seek(offset)
+            chunk = handle.read()
+            new_offset = handle.tell()
+    except OSError:
+        return offset, last_message
+    if not chunk:
+        return new_offset, last_message
+    progress_lines = []
+    for raw_line in chunk.replace("\r", "\n").splitlines():
+        line = sanitize_log_line(raw_line)
+        if not line:
+            continue
+        if any(pattern in line for pattern in LOG_PROGRESS_PATTERNS):
+            progress_lines.append(line)
+    for line in progress_lines[-5:]:
+        if line == last_message:
+            continue
+        print(f"{label}_server_log_progress={line}")
+        last_message = line
+    return new_offset, last_message
+
+
+def read_log_tail(log_path: Optional[Path], *, max_lines: int) -> str:
+    if log_path is None or not log_path.exists():
+        return ""
+    try:
+        lines = log_path.read_text(encoding="utf-8", errors="replace").replace("\r", "\n").splitlines()
+    except OSError:
+        return ""
+    clean_lines = [sanitize_log_line(line) for line in lines[-max_lines:]]
+    return "\n".join(line for line in clean_lines if line)
+
+
+def sanitize_log_line(line: str) -> str:
+    return ANSI_RE.sub("", line).strip()
 
 
 def build_benchmark_command(
