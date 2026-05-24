@@ -557,10 +557,10 @@ def resolve_manifest_path(value: str | Path, *, base_dir: Optional[Path] = None)
         return raw.resolve()
     value_text = str(value)
     for marker in (
-        "dataset/if_exist/",
-        "cf_dataset/if_exist_cf/",
         "vision_dataset/if_exist/",
         "eval_results/if_exist/",
+        "cf_dataset/if_exist_cf/",
+        "dataset/if_exist/",
     ):
         marker_index = value_text.find(marker)
         if marker_index != -1:

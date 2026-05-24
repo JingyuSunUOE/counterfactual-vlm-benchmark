@@ -178,7 +178,7 @@ def rebase_known_path(value: str) -> Path:
     path = Path(value).expanduser()
     if path.is_absolute() and path.exists():
         return path.resolve()
-    for marker in ("dataset/if_exist/", "cf_dataset/if_exist_cf/", "vision_dataset/if_exist/"):
+    for marker in ("vision_dataset/if_exist/", "cf_dataset/if_exist_cf/", "dataset/if_exist/"):
         marker_index = value.find(marker)
         if marker_index != -1:
             return (REPO_ROOT / value[marker_index:]).resolve(strict=False)

@@ -16,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
+        test_runtime_caches(tmp_path)
         test_content_based_mime_detection(tmp_path)
         evidence_manifest = build_temp_evidence_manifest(tmp_path)
         checks = [
@@ -299,18 +300,52 @@ def main() -> int:
     return 0
 
 
+def test_runtime_caches(tmp: Path) -> None:
+    sys.path.insert(0, str(REPO_ROOT / "eval_code" / "fashion_industry"))
+    import eval_pipeline
+
+    eval_pipeline.clear_runtime_caches()
+    jpeg_with_png_suffix = tmp / "cached_jpeg_bytes.png"
+    Image.new("RGB", (8, 8), color=(0, 255, 0)).save(jpeg_with_png_suffix, format="JPEG")
+
+    if eval_pipeline.guess_mime_type(str(jpeg_with_png_suffix)) != "image/jpeg":
+        raise SystemExit("guess_mime_type should detect JPEG content before cache reuse")
+    if eval_pipeline.guess_mime_type(str(jpeg_with_png_suffix)) != "image/jpeg":
+        raise SystemExit("guess_mime_type should detect JPEG content after cache reuse")
+    summary = eval_pipeline.runtime_cache_summary()
+    if summary["mime_type"]["hits"] < 1:
+        raise SystemExit(f"mime cache should report at least one hit, got {summary['mime_type']}")
+
+    encoded_once = eval_pipeline.encode_image(str(jpeg_with_png_suffix))
+    encoded_twice = eval_pipeline.encode_image(str(jpeg_with_png_suffix))
+    if encoded_once != encoded_twice:
+        raise SystemExit("encode_image cache should return stable base64 output")
+    summary = eval_pipeline.runtime_cache_summary()
+    if summary["base64"]["hits"] < 1:
+        raise SystemExit(f"base64 cache should report at least one hit, got {summary['base64']}")
+
+    client_once = eval_pipeline._openai_client("EMPTY", "http://localhost:8000/v1")
+    client_twice = eval_pipeline._openai_client("EMPTY", "http://localhost:8000/v1")
+    if client_once is not client_twice:
+        raise SystemExit("OpenAI-compatible client should be reused for identical api_key/base_url")
+    summary = eval_pipeline.runtime_cache_summary()
+    if summary["openai_client"]["hits"] < 1:
+        raise SystemExit(f"OpenAI client cache should report at least one hit, got {summary['openai_client']}")
+
+
 def test_content_based_mime_detection(tmp: Path) -> None:
     sys.path.insert(0, str(REPO_ROOT / "eval_code" / "fashion_industry"))
     import eval_pipeline
-    import requests
 
+    eval_pipeline.clear_runtime_caches()
     jpeg_with_png_suffix = tmp / "jpeg_bytes.png"
     Image.new("RGB", (8, 8), color=(255, 0, 0)).save(jpeg_with_png_suffix, format="JPEG")
     if eval_pipeline.guess_mime_type(str(jpeg_with_png_suffix)) != "image/jpeg":
         raise SystemExit("guess_mime_type should detect JPEG content even with a .png suffix")
 
     captured = {}
-    original_post = requests.post
+    session = eval_pipeline._requests_session("anthropic")
+    original_post = session.post
 
     class FakeResponse:
         status_code = 200
@@ -324,10 +359,10 @@ def test_content_based_mime_detection(tmp: Path) -> None:
         return FakeResponse()
 
     try:
-        requests.post = fake_post
+        session.post = fake_post
         response, error = eval_pipeline.query_claude([str(jpeg_with_png_suffix)], "What is visible?", model="claude-sonnet-4")
     finally:
-        requests.post = original_post
+        session.post = original_post
 
     if error:
         raise SystemExit(f"query_claude fake request failed unexpectedly: {error}")

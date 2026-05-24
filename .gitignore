@@ -25,7 +25,9 @@ env/
 # Internal planning and local deployment files
 EXPERIMENT_*.md
 Dockerfile
+Dockerfile.*
 job.yml
+job.*.yml
 
 # Local runtime, model, and provider caches
 .cache/

@@ -11,6 +11,7 @@ import sys
 import time
 from collections import Counter
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -465,17 +466,60 @@ def resolve_resume_run_dir(output_root, resume, expected_config):
     return None
 
 
-def encode_image(path: str) -> str:
-    with open(path, "rb") as handle:
+def _file_cache_key(path: str) -> tuple[str, int, int]:
+    resolved = Path(path).expanduser().resolve(strict=False)
+    stat = resolved.stat()
+    return str(resolved), stat.st_size, stat.st_mtime_ns
+
+
+@lru_cache(maxsize=256)
+def _encode_image_cached(resolved_path: str, size: int, mtime_ns: int) -> str:
+    del size, mtime_ns
+    with open(resolved_path, "rb") as handle:
         return base64.b64encode(handle.read()).decode()
 
 
+def encode_image(path: str) -> str:
+    return _encode_image_cached(*_file_cache_key(path))
+
+
+@lru_cache(maxsize=2048)
+def _guess_mime_type_cached(resolved_path: str, size: int, mtime_ns: int) -> str:
+    del size, mtime_ns
+    return detect_mime_type(resolved_path)
+
+
 def guess_mime_type(path: str) -> str:
-    return detect_mime_type(path)
+    return _guess_mime_type_cached(*_file_cache_key(path))
 
 
 def make_data_url(path: str) -> str:
     return f"data:{guess_mime_type(path)};base64,{encode_image(path)}"
+
+
+def _cache_info_dict(cache_info):
+    return {
+        "hits": cache_info.hits,
+        "misses": cache_info.misses,
+        "maxsize": cache_info.maxsize,
+        "currsize": cache_info.currsize,
+    }
+
+
+def runtime_cache_summary() -> dict:
+    return {
+        "mime_type": _cache_info_dict(_guess_mime_type_cached.cache_info()),
+        "base64": _cache_info_dict(_encode_image_cached.cache_info()),
+        "openai_client": _cache_info_dict(_openai_client.cache_info()),
+        "requests_session": _cache_info_dict(_requests_session.cache_info()),
+    }
+
+
+def clear_runtime_caches() -> None:
+    _guess_mime_type_cached.cache_clear()
+    _encode_image_cached.cache_clear()
+    _openai_client.cache_clear()
+    _requests_session.cache_clear()
 
 
 def _content_to_text(content):
@@ -490,6 +534,7 @@ def _content_to_text(content):
     return str(content)
 
 
+@lru_cache(maxsize=16)
 def _openai_client(api_key, base_url=None):
     from openai import OpenAI
 
@@ -497,6 +542,14 @@ def _openai_client(api_key, base_url=None):
     if base_url:
         kwargs["base_url"] = base_url
     return OpenAI(**kwargs)
+
+
+@lru_cache(maxsize=8)
+def _requests_session(provider: str):
+    import requests
+
+    del provider
+    return requests.Session()
 
 
 def _normalize_openai_compatible_url(url):
@@ -654,6 +707,7 @@ def query_gemini(
 ):
     import requests
 
+    session = _requests_session("gemini")
     cache_state = provider_cache_state(
         provider="google",
         provider_cache=provider_cache if image_paths else "off",
@@ -689,7 +743,7 @@ def query_gemini(
     for attempt in range(3):
         try:
             try:
-                response = requests.post(url, json=payload, timeout=90)
+                response = session.post(url, json=payload, timeout=90)
                 if structured_output_mode != "off" and structured_output_schema and response.status_code == 200:
                     set_last_structured_output_info(used=True, schema=structured_output_schema, fallback_reason=None)
                 elif structured_output_mode == "off":
@@ -719,7 +773,7 @@ def query_gemini(
             schema=structured_output_schema,
             fallback_reason=format_structured_fallback_reason(Exception(response.text[:500])),
         )
-        response = requests.post(url, json=plain_payload, timeout=90)
+        response = session.post(url, json=plain_payload, timeout=90)
     if response.status_code != 200:
         return None, f"HTTP {response.status_code}: {response.text[:160]}"
     try:
@@ -818,6 +872,7 @@ def query_claude(
 ):
     import requests
 
+    session = _requests_session("anthropic")
     cache_state = provider_cache_state(
         provider="anthropic",
         provider_cache=provider_cache if image_paths else "off",
@@ -860,7 +915,7 @@ def query_claude(
 
     for attempt in range(3):
         try:
-            response = requests.post(
+            response = session.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
                     "x-api-key": ANTHROPIC_API_KEY,
@@ -897,7 +952,7 @@ def query_claude(
             schema=structured_output_schema,
             fallback_reason=format_structured_fallback_reason(Exception(response.text[:500])),
         )
-        response = requests.post(
+        response = session.post(
             "https://api.anthropic.com/v1/messages",
             headers={
                 "x-api-key": ANTHROPIC_API_KEY,
@@ -931,6 +986,7 @@ def query_claude(
 def query_openrouter(image_paths: list[str], question: str, model: str):
     import requests
 
+    session = _requests_session("openrouter")
     set_last_provider_cache_info(enabled=False, reason="unsupported_openrouter")
     content = []
     for image_path in image_paths:
@@ -939,7 +995,7 @@ def query_openrouter(image_paths: list[str], question: str, model: str):
 
     for attempt in range(3):
         try:
-            response = requests.post(
+            response = session.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -3073,6 +3129,7 @@ def run_eval(
         f"{int(cache_summary.get('request_count', 0))} "
         f"usage_rows={int(cache_summary.get('requests_with_usage', 0))}"
     )
+    print("runtime_cache_summary=" + json.dumps(summary.get("runtime_cache") or {}, sort_keys=True))
     write_json(run_dir / "summary.json", summary)
     write_checkpoint(
         run_dir=run_dir,
@@ -3223,6 +3280,7 @@ def _summarize_run(records, *, run_id, run_status, total_tasks, evidence_filter_
         "by_domain": summarize_by_field(records, "domain", default="unknown"),
         "by_source_variant": summarize_by_field(records, "source", default="unknown"),
         "provider_cache": summarize_provider_cache(records),
+        "runtime_cache": runtime_cache_summary(),
         "evidence_filter": evidence_filter_stats or {},
     }
 
